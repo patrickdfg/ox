@@ -37,7 +37,8 @@ button:disabled { opacity: .45; cursor: default; }
 .choice small { display: block; font-weight: 500; font-size: 14px; color: var(--muted); margin-top: 4px; }
 
 /* 진행자 대기실 */
-.join-box { background: var(--card); color: var(--ink); border-radius: 20px; padding: 20px 32px; }
+.join-box { background: var(--card); color: var(--ink); border-radius: 20px; padding: 20px 32px; display: flex; align-items: center; gap: 28px; flex-wrap: wrap; justify-content: center; }
+.qr svg { display: block; width: clamp(160px, 22vw, 240px); height: auto; }
 .join-box .label { color: var(--muted); font-size: 18px; margin: 0; }
 .join-box .url { font-size: clamp(18px, 2.4vw, 26px); font-weight: 700; margin: 4px 0 12px; word-break: break-all; }
 .pin { font-size: clamp(56px, 10vw, 110px); font-weight: 900; letter-spacing: 8px; line-height: 1; margin: 0; }

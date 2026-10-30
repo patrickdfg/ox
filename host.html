@@ -10,10 +10,13 @@
 <body>
   <section id="lobby" class="screen" hidden>
     <div class="join-box">
-      <p class="label">휴대폰으로 접속하세요</p>
-      <p class="url" id="join-url"></p>
-      <p class="label">게임 PIN</p>
-      <p class="pin" id="pin">······</p>
+      <div class="qr" id="qr"></div>
+      <div>
+        <p class="label">휴대폰으로 QR을 찍거나 접속하세요</p>
+        <p class="url" id="join-url"></p>
+        <p class="label">게임 PIN</p>
+        <p class="pin" id="pin">······</p>
+      </div>
     </div>
     <p class="sub">참가자 <b id="player-count">0</b>명 · 문제 <span id="total-q"></span>개</p>
     <ul class="players" id="player-list"></ul>

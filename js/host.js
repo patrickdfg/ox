@@ -1,6 +1,7 @@
 // 진행자 화면: 방 만들기, 문제 진행, 채점, 순위 표시
 import { at, set, update, get, onValue, serverTimestamp, calcPoints, esc } from "./db.js";
 import { questions, TIME_LIMIT } from "./questions.js";
+import qrcode from "https://cdn.jsdelivr.net/npm/qrcode-generator@2.0.4/dist/qrcode.mjs";
 
 const $ = (id) => document.getElementById(id);
 const screens = ["lobby", "question", "reveal", "end"];
@@ -21,8 +22,15 @@ async function createRoom() {
   } while ((await get(at(`games/${pin}`))).exists());
   await set(at(`games/${pin}`), { state: "lobby", q: -1, createdAt: serverTimestamp() });
 
+  const playUrl = new URL("play.html", location.href).href;
   $("pin").textContent = pin;
-  $("join-url").textContent = new URL("play.html", location.href).href.replace(/^https?:\/\//, "");
+  $("join-url").textContent = playUrl.replace(/^https?:\/\//, "");
+
+  // QR에는 PIN을 붙인 주소를 넣어 찍으면 PIN이 자동으로 채워지게 함
+  const qr = qrcode(0, "M");
+  qr.addData(`${playUrl}?pin=${pin}`);
+  qr.make();
+  $("qr").innerHTML = qr.createSvgTag({ cellSize: 6, margin: 2 });
   $("total-q").textContent = questions.length;
   show("lobby");
 
