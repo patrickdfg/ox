@@ -61,6 +61,12 @@ a { color:inherit; text-decoration:none; }
 .image-preview { display:flex; align-items:center; gap:12px; margin-top:12px; }
 .image-preview img { max-width:150px; max-height:100px; object-fit:contain; border-radius:8px; }
 .image-preview button { background:#eee9f7; color:#65597b; padding:8px 10px; border-radius:8px; font-size:12px; }
+.ai-panel { border-color:#e2d7ff; background:linear-gradient(140deg,#fff,#f8f4ff); }
+.field textarea { display:block; width:100%; margin-top:8px; padding:14px; border:1px solid #e6e1f0; border-radius:11px; color:var(--ink); background:#fff; font:inherit; font-size:14px; resize:vertical; line-height:1.65; }
+.field textarea:focus { outline:none; border-color:#9571eb; box-shadow:0 0 0 3px #eee7ff; }
+.ai-options { display:flex; gap:12px; }.ai-options .field { flex:1; }
+.ai-note { color:#77708c; font-size:12px; line-height:1.7; margin:16px 0; }
+.ai-button { background:#7445e8; color:white; }
 .question-image { display:block; width:100%; max-height:260px; object-fit:contain; border-radius:14px; background:white; }
 .host-image { max-width:650px; max-height:240px; }
 .player-question { gap:16px; }

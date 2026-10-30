@@ -99,6 +99,35 @@ async function save() {
 }
 $("save-btn").onclick = save;
 $("save-bottom").onclick = save;
+$("ai-generate").onclick = async () => {
+  const user = auth.currentUser;
+  const source = $("ai-source").value.trim();
+  const targetQuiz = quiz;
+  if (!user || user.uid !== ownerUid) { $("ai-message").textContent = "Google 로그인 후 이용해 주세요."; return; }
+  if (source.length < 30 || source.length > 15000) { $("ai-message").textContent = "원고는 30~15,000자로 입력해 주세요."; return; }
+  $("ai-generate").disabled = true;
+  $("ai-message").textContent = "원고를 읽고 문제를 만들고 있어요.";
+  try {
+    const token = await user.getIdToken();
+    const response = await fetch("https://maoylwwnluyyfmwqfkfl.supabase.co/functions/v1/quiz-ai", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: "sb_publishable_RR5lrEd5ZidVI1fY1v9haw_Hd7pOH1V", Authorization: "Bearer " + token },
+      body: JSON.stringify({ source, type: $("ai-type").value, count: Number($("ai-count").value) })
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "문제를 만들지 못했어요.");
+    if (auth.currentUser?.uid !== user.uid || targetQuiz !== quiz) throw new Error("계정이 변경되어 문제를 추가하지 않았어요.");
+    if (!Array.isArray(result.questions) || !result.questions.length) throw new Error("생성된 문제를 확인하지 못했어요.");
+    quiz.questions.push(...result.questions);
+    renderQuestions();
+    $("ai-message").textContent = `${result.questions.length}개 문제를 추가했어요. 정답과 해설을 확인한 뒤 저장해 주세요.`;
+    $("questions").scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (error) {
+    $("ai-message").textContent = error.message || "연결에 실패했어요. 다시 시도해 주세요.";
+  } finally {
+    $("ai-generate").disabled = false;
+  }
+};
 $("editor-login").onclick = async () => {
   try { await login(); }
   catch (error) { console.error(error); $("auth-message").textContent = "로그인하지 못했어요. 팝업 허용과 Firebase 설정을 확인해 주세요."; }
