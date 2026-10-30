@@ -32,6 +32,7 @@ function render(game) {
   currentGame = game;
   if (["cosmic", "sunset", "ocean"].includes(game.theme)) document.body.className = `game theme-${game.theme}`;
   const key = `${game.state}-${game.q}`;
+  if (game.state === "question") $("player-rank").textContent = `🏆 ${rankOf(game)}위`;
   if (key === lastKey) return;
   lastKey = key;
   clearInterval(timer);
@@ -42,6 +43,10 @@ function render(game) {
     const item = game.current;
     $("pq-num").textContent = `QUESTION ${game.q + 1} / ${game.total}`;
     $("pq-text").textContent = item.q;
+    $("pq-image").hidden = !item.image;
+    if (item.image) $("pq-image").src = item.image;
+    else $("pq-image").removeAttribute("src");
+    $("player-options").dataset.type = item.type;
     $("answer-message").textContent = "";
     $("player-options").innerHTML = item.options.map((option, i) => `<button class="answer-tile color-${i}" data-answer="${i}"><span>${["◆", "●", "▲", "■"][i]}</span>${esc(option)}</button>`).join("");
     const tick = () => {

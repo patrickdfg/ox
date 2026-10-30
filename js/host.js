@@ -1,21 +1,27 @@
 import { at, set, update, get, onValue, serverTimestamp, calcPoints, esc } from "./db.js";
-import { loadQuizzes, sampleQuiz } from "./store.js";
+import { loadQuiz, sampleQuiz } from "./store.js";
+import { auth, authReady } from "./auth.js";
 import qrcode from "https://cdn.jsdelivr.net/npm/qrcode-generator@2.0.4/dist/qrcode.mjs";
 
 const $ = id => document.getElementById(id);
 const show = name => ["lobby", "question", "reveal", "end"].forEach(s => $(s).hidden = s !== name);
 const quizId = new URLSearchParams(location.search).get("quiz") || "sample";
-const quiz = quizId === "sample" ? sampleQuiz() : loadQuizzes().find(item => item.id === quizId);
+let quiz;
 let pin = "", game = {}, qIndex = -1, timer = null, revealing = false;
 const players = () => Object.entries(game.players || {}).map(([id, player]) => ({ id, ...player }));
 const ranking = () => players().sort((a, b) => b.score - a.score);
 const rankHtml = list => list.map(p => `<li><span>${esc(p.name)}</span><b>${p.score || 0}점</b></li>`).join("");
 
 async function createRoom() {
+  if (quizId === "sample") quiz = sampleQuiz();
+  else {
+    await authReady;
+    if (auth.currentUser) quiz = await loadQuiz(auth.currentUser.uid, quizId);
+  }
   if (!quiz) {
     show("lobby");
     $("pin").textContent = "퀴즈 없음";
-    $("game-error").textContent = "저장한 브라우저에서 퀴즈를 다시 열어 주세요.";
+    $("game-error").textContent = "퀴즈를 찾을 수 없어요. 저장한 Google 계정으로 로그인해 주세요.";
     return;
   }
   document.body.className = `game theme-${quiz.theme}`;
@@ -51,10 +57,13 @@ async function goQuestion(i) {
   const item = quiz.questions[i];
   $("q-num").textContent = `QUESTION ${i + 1} / ${quiz.questions.length}`;
   $("q-text").textContent = item.q;
+  $("q-image").hidden = !item.image;
+  if (item.image) $("q-image").src = item.image;
+  else $("q-image").removeAttribute("src");
   $("host-options").innerHTML = item.options.map((option, j) => `<div class="answer-tile color-${j}"><span>${["◆", "●", "▲", "■"][j]}</span>${esc(option)}</div>`).join("");
   $("answer-count").textContent = `0 / ${players().length}명 응답`;
   show("question");
-  await update(at(`games/${pin}`), { state: "question", q: i, current: { q: item.q, options: item.options, time: item.time, type: item.type }, qStart: serverTimestamp(), reveal: null });
+  await update(at(`games/${pin}`), { state: "question", q: i, current: { q: item.q, options: item.options, time: item.time, type: item.type, image: item.image || "" }, qStart: serverTimestamp(), reveal: null });
   let left = item.time;
   $("timer").textContent = left;
   clearInterval(timer);
