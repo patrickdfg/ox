@@ -1,72 +1,10 @@
-<!-- 진행자 화면: 큰 화면에 띄워 놓고 게임을 진행 -->
 <!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>OX 퀴즈 진행</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <section id="lobby" class="screen" hidden>
-    <div class="join-box">
-      <div class="qr" id="qr"></div>
-      <div>
-        <p class="label">휴대폰으로 QR을 찍거나 접속하세요</p>
-        <p class="url" id="join-url"></p>
-        <p class="label">게임 PIN</p>
-        <p class="pin" id="pin">······</p>
-      </div>
-    </div>
-    <p class="sub">참가자 <b id="player-count">0</b>명 · 문제 <span id="total-q"></span>개</p>
-    <ul class="players" id="player-list"></ul>
-    <button class="btn primary" id="start-btn" disabled>게임 시작 ▶</button>
-  </section>
-
-  <section id="question" class="screen" hidden>
-    <span class="qnum" id="q-num"></span>
-    <p class="qtext" id="q-text"></p>
-    <div class="ox-row">
-      <span class="mark mark-O">O</span>
-      <div class="timer" id="timer"></div>
-      <span class="mark mark-X">X</span>
-    </div>
-    <p class="sub" id="answer-count"></p>
-    <button class="btn ghost" id="skip-btn">바로 정답 공개</button>
-  </section>
-
-  <section id="reveal" class="screen" hidden>
-    <span class="qnum" id="r-num"></span>
-    <p class="sub" id="r-text"></p>
-    <div class="reveal-grid">
-      <div class="panel">
-        <h2>정답</h2>
-        <div class="big-mark" id="r-answer"></div>
-        <div class="bars">
-          <div class="bar" id="bar-o">O · <span id="count-o">0</span>명</div>
-          <div class="bar" id="bar-x">X · <span id="count-x">0</span>명</div>
-        </div>
-        <p class="exp" id="r-exp"></p>
-      </div>
-      <div class="panel">
-        <h2>순위 TOP 5</h2>
-        <ol class="rank" id="top5"></ol>
-      </div>
-    </div>
-    <button class="btn primary" id="next-btn">다음 문제 ▶</button>
-  </section>
-
-  <section id="end" class="screen" hidden>
-    <h1 class="logo">🏆 최종 순위</h1>
-    <div class="podium">
-      <div class="step s2"><div class="medal">🥈</div><div class="nm" id="p2-name"></div><div id="p2-score"></div></div>
-      <div class="step s1"><div class="medal">🥇</div><div class="nm" id="p1-name"></div><div id="p1-score"></div></div>
-      <div class="step s3"><div class="medal">🥉</div><div class="nm" id="p3-name"></div><div id="p3-score"></div></div>
-    </div>
-    <ol class="rank plain" id="rest" style="width:100%;max-width:520px"></ol>
-    <button class="btn" id="again-btn">새 게임</button>
-  </section>
-
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>퀴즈 진행 · 퀴즈 플레이</title><link rel="stylesheet" href="style.css"></head>
+<body class="game theme-cosmic">
+  <header class="game-top"><a class="brand" href="index.html"><span>✦</span> QUIZ PLAY</a><span class="game-title" id="game-title"></span><span class="live-badge">● LIVE GAME</span></header>
+  <section id="lobby" class="screen" hidden><span class="eyebrow">LET'S PLAY TOGETHER</span><h1 class="game-heading">모두 모여라! <span>✦</span></h1><p class="sub">휴대폰으로 QR을 찍거나 PIN을 입력해 참가하세요</p><div class="join-box"><div class="qr" id="qr"></div><div class="join-info"><span class="mini-label">게임 참가 주소</span><p class="url" id="join-url"></p><span class="mini-label">GAME PIN</span><p class="pin" id="pin">······</p></div></div><p class="sub"><b id="player-count">0</b>명 참가 중 · <span id="total-q"></span>문제</p><ul class="players" id="player-list"></ul><button class="btn primary" id="start-btn" disabled>게임 시작하기 →</button><p class="game-error" id="game-error" role="status"></p></section>
+  <section id="question" class="screen" hidden><span class="qnum" id="q-num"></span><p class="qtext" id="q-text"></p><div class="timer" id="timer"></div><div class="answer-grid host-options" id="host-options"></div><p class="sub" id="answer-count"></p><button class="btn ghost" id="skip-btn">바로 정답 공개</button></section>
+  <section id="reveal" class="screen" hidden><span class="eyebrow">NICE TRY!</span><h1 class="game-heading">정답 공개 <span>✦</span></h1><div class="reveal-grid"><div class="glass-panel"><p class="mini-label">정답</p><div class="answer-reveal" id="r-answer"></div><div class="answer-grid" id="answer-stats"></div><p class="exp" id="r-exp"></p></div><div class="glass-panel"><h2>🏆 현재 순위 TOP 5</h2><ol class="rank" id="top5"></ol></div></div><button class="btn primary" id="next-btn">다음 문제 →</button></section>
+  <section id="end" class="screen" hidden><span class="eyebrow">YOU DID IT!</span><h1 class="game-heading">최종 결과 🏆</h1><p class="sub">모두 정말 잘했어요!</p><ol class="rank final-rank" id="final-rank"></ol><a class="btn primary" href="index.html">내 퀴즈로 돌아가기 →</a></section>
   <script type="module" src="js/host.js"></script>
-</body>
-</html>
+</body></html>

@@ -1,20 +1,24 @@
-<!-- 시작 화면: 진행자/참가자 선택 -->
 <!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>OX 퀴즈</title>
+  <title>퀴즈 플레이</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <main class="screen">
-    <h1 class="logo"><span class="o">O</span><span class="x">X</span> 퀴즈</h1>
-    <p class="sub">실시간 OX 퀴즈 게임</p>
-    <div class="choice">
-      <a class="btn primary" href="host.html">진행자로 시작<small>큰 화면(교사용)</small></a>
-      <a class="btn" href="play.html">참가하기<small>휴대폰(학생용)</small></a>
+<body class="home">
+  <header class="topbar"><a class="brand" href="index.html"><span>✦</span> QUIZ PLAY</a><a class="top-link" href="play.html">게임 참가하기 ↗</a></header>
+  <main class="home-main">
+    <div class="home-copy">
+      <span class="eyebrow">PLAY · LEARN · SHINE</span>
+      <h1>함께 풀면<br><em>더 신나는 퀴즈!</em></h1>
+      <p>직접 문제를 만들고, 친구들과 실시간으로 즐겨요.<br>배우는 순간이 반짝이는 게임이 됩니다.</p>
+      <div class="home-actions"><a class="btn primary" href="editor.html">✦ 퀴즈 만들기</a><a class="btn light" href="play.html">PIN으로 참가하기 →</a></div>
+      <div class="features"><span>✎ 쉽고 빠른 문제 만들기</span><span>⚡ 실시간 플레이</span><span>🏆 결과와 순위</span></div>
     </div>
+    <div class="hero-art" aria-hidden="true"><span class="orbit orbit-one">✦</span><span class="orbit orbit-two">✳</span><div class="hero-card"><span class="hero-card-label">READY TO PLAY?</span><div class="hero-question">?</div><div class="hero-answers"><i>O</i><i>X</i></div><b>LET'S QUIZ!</b></div><span class="hero-star">✷</span></div>
   </main>
+  <section class="library"><div class="section-title"><div><span class="eyebrow">YOUR QUIZZES</span><h2>내 퀴즈</h2><p>저장한 퀴즈를 열어 바로 시작하세요.</p></div><a class="text-link" href="editor.html">+ 새 퀴즈</a></div><div id="quiz-list" class="quiz-list"></div></section>
+  <script type="module" src="js/home.js"></script>
 </body>
 </html>

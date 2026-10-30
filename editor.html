@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>퀴즈 만들기 · 퀴즈 플레이</title><link rel="stylesheet" href="style.css"></head>
+<body class="editor-page">
+  <header class="editor-top"><a class="brand dark" href="index.html"><span>✦</span> QUIZ PLAY</a><div class="editor-actions"><a class="quiet-link" href="index.html">나가기</a><button class="btn primary compact" id="save-btn">저장하기</button></div></header>
+  <main class="editor-layout">
+    <aside class="editor-sidebar"><span class="eyebrow">QUIZ STUDIO</span><h1>나만의 퀴즈 만들기</h1><p>문제를 채우고 마음에 드는 게임 배경을 골라보세요.</p><div class="tip-card"><span>✦</span><b>좋은 퀴즈의 시작!</b><p>문제마다 정답과 해설을 함께 넣으면 학습 효과가 더 좋아요.</p></div><a href="index.html" class="quiet-link">← 내 퀴즈로 돌아가기</a></aside>
+    <div class="editor-content">
+      <section class="editor-panel"><div class="panel-heading"><div><span class="step-label">01 / QUIZ INFO</span><h2>퀴즈 정보</h2></div><span class="panel-icon">✦</span></div><label class="field">퀴즈 제목<input id="quiz-title" maxlength="80" placeholder="예: 신나는 컴퓨터 상식 퀴즈"></label><label class="field">한 줄 소개 <span class="optional">선택</span><input id="quiz-description" maxlength="120" placeholder="어떤 퀴즈인지 소개해 주세요"></label></section>
+      <section class="editor-panel"><div class="panel-heading"><div><span class="step-label">02 / GAME THEME</span><h2>게임 배경 선택</h2><p>진행자와 참가자 화면에 적용됩니다.</p></div><span class="panel-icon">✳</span></div><div id="themes" class="themes"></div></section>
+      <section class="editor-panel"><div class="panel-heading"><div><span class="step-label">03 / QUESTIONS</span><h2>문제 만들기 <span id="question-count" class="count"></span></h2><p>O/X와 객관식 문제를 섞어서 만들 수 있어요.</p></div><span class="panel-icon">?</span></div><div id="questions"></div><div class="add-buttons"><button class="add-btn" id="add-ox">＋ O/X 문제</button><button class="add-btn" id="add-choice">＋ 객관식 문제</button></div><p id="editor-message" class="editor-message" role="status"></p></section>
+      <div class="editor-footer"><p>저장한 퀴즈는 이 브라우저의 ‘내 퀴즈’에서 확인할 수 있어요.</p><button class="btn primary" id="save-bottom">퀴즈 저장하기 →</button></div>
+    </div>
+  </main>
+  <script type="module" src="js/editor.js"></script>
+</body></html>

@@ -1,94 +1,49 @@
-/* OX 퀴즈 공용 스타일 */
-:root {
-  --bg: #2b1b5a;
-  --bg2: #4a2c9a;
-  --card: #ffffff;
-  --ink: #1d1640;
-  --muted: #6b6490;
-  --o: #1e7bf2;
-  --x: #ef3b4f;
-  --ok: #26b36b;
-  --gold: #ffc531;
-}
-* { box-sizing: border-box; }
-html, body { margin: 0; min-height: 100%; }
-body {
-  font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
-  background: radial-gradient(circle at 20% 0%, var(--bg2), var(--bg) 70%);
-  background-attachment: fixed;
-  color: #fff;
-  min-height: 100vh;
-}
-button { font: inherit; cursor: pointer; border: 0; }
-button:disabled { opacity: .45; cursor: default; }
-[hidden] { display: none !important; }
-
-.screen { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 16px; gap: 20px; text-align: center; }
-.logo { font-size: clamp(48px, 10vw, 96px); font-weight: 900; letter-spacing: -2px; margin: 0; }
-.logo .o { color: #6fb2ff; } .logo .x { color: #ff7a88; }
-.sub { color: #cfc6f5; margin: 0; font-size: 18px; }
-
-.btn { background: #fff; color: var(--ink); padding: 16px 28px; border-radius: 14px; font-size: 20px; font-weight: 800; box-shadow: 0 6px 0 rgba(0,0,0,.25); transition: transform .08s; }
-.btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.25); }
-.btn.primary { background: var(--gold); }
-.btn.ghost { background: transparent; color: #fff; box-shadow: none; border: 2px solid rgba(255,255,255,.4); }
-.choice { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
-.choice .btn { min-width: 220px; padding: 24px; }
-.choice small { display: block; font-weight: 500; font-size: 14px; color: var(--muted); margin-top: 4px; }
-
-/* 진행자 대기실 */
-.join-box { background: var(--card); color: var(--ink); border-radius: 20px; padding: 20px 32px; display: flex; align-items: center; gap: 28px; flex-wrap: wrap; justify-content: center; }
-.qr svg { display: block; width: clamp(160px, 22vw, 240px); height: auto; }
-.join-box .label { color: var(--muted); font-size: 18px; margin: 0; }
-.join-box .url { font-size: clamp(18px, 2.4vw, 26px); font-weight: 700; margin: 4px 0 12px; word-break: break-all; }
-.pin { font-size: clamp(56px, 10vw, 110px); font-weight: 900; letter-spacing: 8px; line-height: 1; margin: 0; }
-.players { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 1000px; }
-.players li { background: rgba(255,255,255,.15); padding: 8px 16px; border-radius: 999px; font-weight: 700; font-size: 20px; animation: pop .25s ease-out; }
-@keyframes pop { from { transform: scale(.6); opacity: 0; } }
-
-/* 문제 화면 */
-.qnum { background: rgba(255,255,255,.15); padding: 6px 16px; border-radius: 999px; font-weight: 700; }
-.qtext { background: var(--card); color: var(--ink); border-radius: 20px; padding: 32px; font-size: clamp(24px, 4vw, 48px); font-weight: 800; line-height: 1.35; max-width: 1100px; width: 100%; margin: 0; word-break: keep-all; }
-.timer { width: 110px; height: 110px; border-radius: 50%; background: var(--gold); color: var(--ink); display: grid; place-items: center; font-size: 52px; font-weight: 900; }
-.ox-row { display: flex; gap: 24px; }
-.mark { font-size: clamp(80px, 14vw, 160px); font-weight: 900; line-height: 1; }
-.mark-O { color: #6fb2ff; } .mark-X { color: #ff7a88; }
-.big-mark { font-size: 120px; font-weight: 900; line-height: 1; }
-
-/* 정답 공개 */
-.reveal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; width: 100%; max-width: 1100px; align-items: start; }
-.panel { background: rgba(255,255,255,.1); border-radius: 20px; padding: 20px; }
-.bars { display: flex; gap: 16px; justify-content: center; }
-.bar { flex: 1; border-radius: 14px; padding: 16px; font-size: 28px; font-weight: 900; opacity: .45; }
-.bar.correct { opacity: 1; outline: 4px solid #fff; }
-#bar-o { background: var(--o); } #bar-x { background: var(--x); }
-.exp { color: #e8e3ff; font-size: 20px; line-height: 1.5; margin: 12px 0 0; word-break: keep-all; }
-.rank { list-style: none; padding: 0; margin: 0; counter-reset: r; text-align: left; }
-.rank li { counter-increment: r; display: flex; justify-content: space-between; gap: 12px; background: #fff; color: var(--ink); padding: 10px 16px; border-radius: 12px; margin-bottom: 8px; font-size: 20px; font-weight: 700; }
-.rank li span::before { content: counter(r) ". "; color: var(--muted); }
-.rank.plain li span::before { content: none; }
-h2 { margin: 0 0 12px; font-size: 22px; }
-
-/* 시상대 */
-.podium { display: flex; align-items: flex-end; gap: 12px; }
-.step { width: clamp(100px, 18vw, 180px); border-radius: 14px 14px 0 0; padding: 16px 8px; color: var(--ink); font-weight: 800; }
-.step .nm { font-size: 22px; word-break: break-all; }
-.step .medal { font-size: 40px; }
-.s1 { background: var(--gold); height: 260px; } .s2 { background: #dfe3ee; height: 200px; } .s3 { background: #f0a96b; height: 160px; }
-
-/* 참가자 화면 */
-.form { background: var(--card); color: var(--ink); border-radius: 20px; padding: 24px; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 12px; }
-.form input { font: inherit; font-size: 22px; padding: 14px; border: 2px solid #ddd8f2; border-radius: 12px; text-align: center; font-weight: 700; }
-.form input:focus { outline: none; border-color: var(--bg2); }
-.msg { color: var(--x); min-height: 1.2em; margin: 0; font-weight: 700; }
-.ptext { font-size: 20px; font-weight: 700; line-height: 1.4; margin: 0; max-width: 520px; word-break: keep-all; }
-.ox-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; max-width: 520px; }
-.ox-btn { aspect-ratio: 1; border-radius: 24px; font-size: clamp(90px, 30vw, 160px); font-weight: 900; color: #fff; box-shadow: 0 8px 0 rgba(0,0,0,.25); }
-.ox-btn[data-a="O"] { background: var(--o); } .ox-btn[data-a="X"] { background: var(--x); }
-.ptimer { font-size: 28px; font-weight: 900; color: var(--gold); }
-.screen.good { background: var(--ok); } .screen.bad { background: var(--x); }
-.huge { font-size: 44px; font-weight: 900; margin: 0; }
-.big { font-size: 28px; font-weight: 800; margin: 0; }
-.tag { background: rgba(0,0,0,.2); padding: 6px 14px; border-radius: 999px; font-weight: 700; }
-
-@media (max-width: 760px) { .reveal-grid { grid-template-columns: 1fr; } }
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Gowun+Dodum&display=swap');
+:root { --ink:#25164f; --purple:#7445e8; --pink:#ff64ae; --yellow:#ffd456; --muted:#77708c; }
+* { box-sizing:border-box; }
+html,body { margin:0; min-height:100%; }
+body { font-family:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif; color:var(--ink); }
+button,input,select { font:inherit; }
+button,a { -webkit-tap-highlight-color:transparent; }
+button { cursor:pointer; border:0; }
+button:disabled { opacity:.45; cursor:default; }
+a { color:inherit; text-decoration:none; }
+[hidden] { display:none!important; }
+.brand { font:900 20px "Outfit",sans-serif; letter-spacing:-.6px; white-space:nowrap; color:white; }
+.brand span { color:#ffd456; font-size:26px; margin-right:5px; }
+.brand.dark { color:var(--ink); }
+.brand.dark span { color:var(--purple); }
+.eyebrow,.step-label { font:800 11px "Outfit",sans-serif; letter-spacing:.18em; color:#b8a1ff; }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:16px 23px; border-radius:14px; font-weight:900; font-size:16px; box-shadow:0 5px 0 rgba(28,12,71,.2); transition:transform .15s,box-shadow .15s; }
+.btn:hover:not(:disabled) { transform:translateY(-2px); }
+.btn:active:not(:disabled) { transform:translateY(3px); box-shadow:0 2px 0 rgba(28,12,71,.2); }
+.btn.primary { background:var(--yellow); color:#302054; }
+.btn.light { background:white; color:var(--ink); }
+.btn.ghost { color:white; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.35); box-shadow:none; }
+.btn.compact { padding:12px 21px; font-size:14px; }
+.topbar,.game-top { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:23px 6%; color:white; position:relative; z-index:1; }
+.top-link { font-size:13px; font-weight:800; color:#eee6ff; }
+.home { background:#f8f7fd; }
+.home-main { min-height:510px; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:space-between; gap:40px; padding:50px 10% 80px; color:white; background:radial-gradient(circle at 74% 30%,#874df0 0,transparent 34%),linear-gradient(130deg,#251452,#4c258f 65%,#7445c9); }
+.home .topbar { background:#251452; }
+.home-copy { position:relative; z-index:1; }
+.home-copy h1 { font-size:clamp(39px,5vw,70px); line-height:1.18; letter-spacing:-.05em; margin:18px 0; }
+.home-copy h1 em { color:#ffdc6b; font-style:normal; }
+.home-copy p { color:#e0d5fb; line-height:1.8; font-size:16px; }
+.home-actions { display:flex; flex-wrap:wrap; gap:12px; margin:27px 0; }
+.features { display:flex; flex-wrap:wrap; gap:18px; color:#d6c7f8; font-size:12px; font-weight:bold; }
+.hero-art { flex:0 0 350px; height:340px; position:relative; display:grid; place-items:center; }
+.hero-card { width:255px; height:290px; border:7px solid rgba(255,255,255,.88); border-radius:32px; background:linear-gradient(145deg,#8660f2,#d269df); transform:rotate(8deg); box-shadow:0 25px 70px #170c4870, inset 0 0 30px #ffffff3a; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; }
+.hero-card-label,.hero-card b { font:800 11px "Outfit",sans-serif; letter-spacing:.15em; }
+.hero-question { font:900 125px/1 "Outfit"; color:#ffdf61; text-shadow:4px 8px 0 #6c39c1; }
+.hero-answers { display:flex; gap:10px; }.hero-answers i { display:grid; place-items:center; background:#55c9fb; width:50px; height:45px; border-radius:12px; font:900 26px "Outfit"; font-style:normal; }.hero-answers i+ i { background:#fb638f; }
+.orbit,.hero-star { position:absolute; font-size:50px; color:#ffe276; text-shadow:0 5px 20px #b951ed; }.orbit-one { left:0; top:30px; }.orbit-two { right:0; top:60px; color:#9bf6ef; }.hero-star { left:0; bottom:10px; color:#ff8ccc; }
+.library { max-width:1200px; margin:auto; padding:55px 30px 90px; }.section-title { display:flex; justify-content:space-between; align-items:end; margin-bottom:24px; }.section-title h2,.panel-heading h2 { margin:7px 0; font-size:25px; letter-spacing:-.04em; }.section-title p,.panel-heading p { color:var(--muted); font-size:14px; margin:0; }.text-link { color:var(--purple); font-weight:900; }
+.quiz-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:20px; }.quiz-card { background:white; border:1px solid #edeaf6; border-radius:22px; overflow:hidden; box-shadow:0 9px 30px #3b275208; }.quiz-cover { height:150px; padding:20px; display:flex; flex-direction:column; justify-content:space-between; color:white; position:relative; overflow:hidden; background-size:cover; background-position:center; }.quiz-cover span { font:800 10px "Outfit"; letter-spacing:.15em; }.quiz-cover strong { font:900 44px "Outfit"; }.quiz-cover small { font-size:10px; letter-spacing:.1em; }.quiz-cover i { position:absolute; right:20px; top:30px; font-size:75px; font-style:normal; color:#ffffff9c; }.quiz-card-body { padding:20px; }.card-tag { color:var(--purple); background:#f1edff; border-radius:20px; padding:5px 10px; font-size:11px; font-weight:bold; }.quiz-card h3 { margin:15px 0 6px; font-size:18px; }.quiz-card p { color:var(--muted); font-size:13px; min-height:36px; }.card-actions { display:flex; align-items:center; gap:15px; border-top:1px solid #f1eef7; padding-top:16px; color:#827b93; font-size:13px; font-weight:bold; }.card-actions button { background:none; color:inherit; padding:0; }.card-actions .play-link { color:var(--purple); margin-right:auto; }
+.editor-page { background:#f7f6fc; }.editor-top { height:72px; background:white; border-bottom:1px solid #ece9f4; display:flex; justify-content:space-between; align-items:center; padding:0 5%; position:sticky; top:0; z-index:5; }.editor-actions { display:flex; align-items:center; gap:25px; }.quiet-link { font-size:13px; color:#77708c; font-weight:bold; }.editor-layout { max-width:1250px; margin:auto; display:grid; grid-template-columns:250px 1fr; gap:45px; padding:48px 30px 90px; }.editor-sidebar { position:sticky; top:115px; align-self:start; }.editor-sidebar h1 { font-size:29px; line-height:1.35; letter-spacing:-.05em; }.editor-sidebar>p,.tip-card p { font-size:14px; line-height:1.7; color:var(--muted); }.tip-card { background:#eae3ff; padding:20px; border-radius:18px; margin:32px 0; }.tip-card span { display:block; font-size:25px; color:var(--purple); margin-bottom:8px; }.tip-card p { margin-bottom:0; }.editor-content { display:grid; gap:18px; }.editor-panel { background:white; border:1px solid #ece9f5; border-radius:22px; padding:30px; box-shadow:0 8px 30px #30165707; }.panel-heading { display:flex; justify-content:space-between; align-items:start; margin-bottom:24px; }.step-label { color:#9a7aec; }.panel-icon { display:grid; place-items:center; width:42px; height:42px; border-radius:14px; color:var(--purple); background:#f2edff; font:900 24px "Outfit"; }.field { display:block; font-size:13px; font-weight:900; margin-top:17px; }.field input,.field select { display:block; width:100%; margin-top:8px; padding:13px 14px; border:1px solid #e6e1f0; border-radius:11px; color:var(--ink); background:#fbfaff; outline:none; }.field input:focus,.field select:focus { border-color:#9571eb; box-shadow:0 0 0 3px #eee7ff; }.optional { color:#aaa3b8; font-size:11px; font-weight:normal; }
+.themes { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }.theme-choice { padding:5px 5px 12px; border:2px solid #edeaf4; border-radius:15px; text-align:left; background:white; color:var(--ink); }.theme-choice.selected { border-color:var(--purple); box-shadow:0 0 0 3px #f0ebff; }.theme-choice strong,.theme-choice small { display:block; margin:8px 7px 0; }.theme-choice strong { font-size:13px; }.theme-choice small { color:#928ba3; font-size:11px; margin-top:3px; }.theme-preview { height:90px; display:block; border-radius:10px; color:#fff; padding:13px; background-size:cover; background-position:center; }.theme-preview i { font-size:25px; font-style:normal; }.theme-preview b { float:right; font-size:34px; color:#ffdd6a; }
+.question-editor { border:1px solid #ebe7f3; background:#fdfcff; border-radius:16px; padding:20px; margin:15px 0; }.question-head { display:flex; justify-content:space-between; align-items:center; }.question-head strong { font-size:14px; }.number-badge { display:inline-grid; place-items:center; width:33px; height:33px; background:#eee8ff; color:var(--purple); border-radius:10px; font:800 13px "Outfit"; margin-right:8px; }.question-tools { display:flex; gap:4px; }.question-tools button { color:#8a839b; background:#f2f0f7; border-radius:8px; width:30px; height:30px; }.editor-options { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px; }.option-edit { display:flex; align-items:center; gap:7px; }.option-edit input { margin:0; }.correct-pick { flex:0 0 36px; height:36px; border-radius:10px; color:#9991a8; background:#eeeaf5; font-weight:900; }.correct-pick.picked { color:white; background:#38bf8b; }.question-details { display:flex; gap:14px; }.question-details .field:first-child { flex:1; }.time-field { width:115px; }.add-buttons { display:flex; gap:10px; margin-top:17px; }.add-btn { flex:1; padding:15px; border:1px dashed #bca9e9; background:#f8f5ff; border-radius:12px; color:var(--purple); font-weight:900; }.count { font-size:14px; color:var(--purple); }.editor-message,.msg { color:#e33f66; font-size:13px; font-weight:bold; }.editor-footer { display:flex; justify-content:space-between; align-items:center; gap:15px; }.editor-footer p { color:#8e879f; font-size:12px; }
+.theme-cosmic { background-image:linear-gradient(120deg,#24104bbd,#4a1e8d8a),url("assets/cosmic.jpg"),linear-gradient(135deg,#271551,#864de2); }.theme-sunset { background-image:radial-gradient(circle at 75% 15%,#ffd179 0,transparent 25%),radial-gradient(circle at 15% 90%,#fa7bb1 0,transparent 30%),linear-gradient(135deg,#8a359f,#f66c88 65%,#ffa77b); }.theme-ocean { background-image:radial-gradient(circle at 80% 15%,#78f4d7 0,transparent 25%),radial-gradient(circle at 12% 80%,#31cce2 0,transparent 30%),linear-gradient(135deg,#153679,#1466a4 58%,#31b4b3); }
+.game { min-height:100vh; color:white; background-size:cover; background-position:center; background-attachment:fixed; }.game::before { content:""; position:fixed; inset:0; background-image:radial-gradient(#ffffff88 1px,transparent 2px); background-size:74px 74px; opacity:.25; pointer-events:none; }.game-top { padding:20px 5%; }.game-title { font-weight:bold; font-size:13px; opacity:.8; }.live-badge { font:800 10px "Outfit"; letter-spacing:.12em; background:#ffffff20; border:1px solid #ffffff35; border-radius:30px; padding:9px 14px; }.screen { min-height:calc(100vh - 75px); position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:16px; padding:25px 20px 60px; }.game-heading { font-size:clamp(35px,5vw,58px); letter-spacing:-.05em; margin:0; }.game-heading span { color:#ffdd65; }.sub { color:#f0eaff; margin:0; font-size:16px; line-height:1.6; }.join-box { background:white; color:var(--ink); border-radius:24px; padding:22px 30px; display:flex; gap:25px; align-items:center; box-shadow:0 18px 60px #18073540; }.qr svg { display:block; width:clamp(150px,18vw,210px); height:auto; }.join-info { text-align:left; }.mini-label { font:800 11px "Outfit",sans-serif; letter-spacing:.12em; color:#a49bb5; }.url { font-size:13px; margin:5px 0 20px; word-break:break-all; }.pin { font:900 clamp(48px,8vw,75px)/1 "Outfit"; letter-spacing:.08em; margin:7px 0; color:#7542e7; }.players { list-style:none; padding:0; margin:0; display:flex; flex-wrap:wrap; gap:8px; justify-content:center; max-width:900px; }.players li,.tag { background:#ffffff25; border:1px solid #ffffff35; padding:9px 16px; border-radius:30px; font-weight:bold; }.qnum { font:800 12px "Outfit"; letter-spacing:.15em; background:#ffffff25; border-radius:30px; padding:9px 16px; }.qtext { background:white; color:var(--ink); border-radius:22px; padding:30px; font-size:clamp(22px,3.5vw,42px); font-weight:900; line-height:1.4; max-width:950px; width:100%; margin:0; word-break:keep-all; box-shadow:0 15px 45px #160c3b30; }.timer { display:grid; place-items:center; border:5px solid #fff9; background:#ffdb63; color:var(--ink); border-radius:50%; width:76px; height:76px; font:900 32px "Outfit"; }.timer.small { width:58px; height:58px; font-size:25px; }.answer-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; width:100%; max-width:950px; }.answer-tile { display:flex; align-items:center; gap:14px; text-align:left; border-radius:15px; padding:18px 20px; color:white; font-size:clamp(16px,2vw,22px); font-weight:900; min-height:75px; box-shadow:0 5px 0 #130a3d40; overflow-wrap:anywhere; }.answer-tile span:first-child { opacity:.9; }.color-0 { background:#ee5579; }.color-1 { background:#5287f5; }.color-2 { background:#e7a42e; }.color-3 { background:#39b78f; }.player-options { max-width:620px; }.player-options .answer-tile { min-height:110px; }.reveal-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; max-width:950px; width:100%; }.glass-panel { background:#ffffff1e; border:1px solid #ffffff35; border-radius:22px; padding:25px; }.glass-panel h2 { font-size:18px; }.answer-reveal { font-size:clamp(27px,4vw,44px); font-weight:900; margin:10px 0 20px; }.glass-panel .answer-tile { font-size:14px; min-height:55px; padding:12px; justify-content:space-between; }.glass-panel .correct { outline:3px solid #fff; }.exp { line-height:1.6; color:#f0e9ff; }.rank { list-style:none; padding:0; margin:0; counter-reset:r; text-align:left; }.rank li { counter-increment:r; display:flex; justify-content:space-between; gap:10px; background:white; color:var(--ink); border-radius:12px; padding:13px 16px; margin-top:8px; font-weight:bold; }.rank li span:before { content:counter(r) ". "; color:var(--purple); }.final-rank { max-width:520px; width:100%; }.form { display:grid; gap:14px; text-align:left; background:white; color:var(--ink); padding:25px; border-radius:22px; width:100%; max-width:380px; box-shadow:0 20px 60px #1a0b3e50; }.form label { font-size:13px; font-weight:bold; }.form input { display:block; width:100%; margin-top:7px; padding:15px; border:1px solid #e5dff0; background:#f9f7fd; border-radius:12px; font-size:18px; outline:none; }.form input:focus { border-color:var(--purple); }.form .msg { margin:0; min-height:1em; }.celebrate { color:#ffe071; font-size:100px; line-height:1; text-shadow:0 10px 30px #eec55880; }.big { font-size:30px; font-weight:900; margin:0; }.huge { font:900 70px "Outfit"; color:#ffe071; margin:0; }.game-error { color:#fff2aa; font-weight:bold; }
+@media(max-width:760px) { .home-main { padding:55px 7%; min-height:auto; }.hero-art { display:none; }.features { gap:12px; }.editor-layout { display:block; padding:28px 16px 70px; }.editor-sidebar { position:static; margin-bottom:25px; }.editor-sidebar h1 { margin:8px 0; }.tip-card,.editor-sidebar .quiet-link { display:none; }.editor-panel { padding:21px; }.editor-top { padding:0 16px; }.editor-actions { gap:14px; }.reveal-grid { grid-template-columns:1fr; }.game-title { display:none; }.join-box { flex-wrap:wrap; justify-content:center; }.join-info { text-align:center; }.screen { justify-content:flex-start; padding-top:40px; }.section-title { align-items:start; }.editor-footer { align-items:flex-start; flex-direction:column; } }
+@media(max-width:480px) { .themes { gap:6px; }.theme-preview { height:65px; }.theme-choice strong { font-size:11px; }.theme-choice small { font-size:10px; }.editor-options { grid-template-columns:1fr; }.question-details { flex-direction:column; gap:0; }.time-field { width:100%; }.add-buttons { flex-direction:column; }.answer-tile { padding:14px; gap:8px; }.player-options .answer-tile { min-height:90px; }.game-top { padding:16px; }.brand { font-size:17px; } }
