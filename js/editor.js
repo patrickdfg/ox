@@ -1,5 +1,6 @@
 import { loadQuiz, saveQuiz, themes, escapeHtml as esc } from "./store.js";
 import { auth, watchAuth, login } from "./auth.js";
+import { readManuscript } from "./manuscript.js";
 
 const $ = id => document.getElementById(id);
 const id = new URLSearchParams(location.search).get("id");
@@ -99,6 +100,25 @@ async function save() {
 }
 $("save-btn").onclick = save;
 $("save-bottom").onclick = save;
+$("ai-file").onchange = async event => {
+  const input = event.target;
+  const file = input.files[0];
+  input.value = "";
+  if (!file) return;
+  $("ai-file-name").textContent = file.name + " 읽는 중…";
+  $("ai-message").textContent = "";
+  try {
+    let text = await readManuscript(file);
+    const cut = text.length > 15000;
+    if (cut) text = text.slice(0, 15000);
+    $("ai-source").value = text;
+    $("ai-file-name").textContent = file.name;
+    $("ai-message").textContent = cut ? "원고가 길어 앞쪽 15,000자만 불러왔어요. 필요한 부분만 남겨 주세요." : `${text.length.toLocaleString()}자를 불러왔어요. 내용을 확인한 뒤 문제를 만들어 주세요.`;
+  } catch (error) {
+    $("ai-file-name").textContent = "한글·PPT·PDF·워드·텍스트 파일 (.hwp .hwpx .pptx .pdf .docx .txt)";
+    $("ai-message").textContent = error.message || "파일을 읽지 못했어요.";
+  }
+};
 $("ai-generate").onclick = async () => {
   const user = auth.currentUser;
   const source = $("ai-source").value.trim();

@@ -67,6 +67,7 @@ a { color:inherit; text-decoration:none; }
 .ai-options { display:flex; gap:12px; }.ai-options .field { flex:1; }
 .ai-note { color:#77708c; font-size:12px; line-height:1.7; margin:16px 0; }
 .ai-button { background:#7445e8; color:white; }
+.ai-file { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px; }.ai-file-btn { background:#fff; color:#7445e8; border:1.5px solid #cdbbff; cursor:pointer; }.ai-file-btn:hover { background:#f3edff; }#ai-file-name { color:#77708c; font-size:12px; line-height:1.6; }
 .question-image { display:block; width:100%; max-height:260px; object-fit:contain; border-radius:14px; background:white; }
 .host-image { max-width:650px; max-height:240px; }
 .player-question { gap:16px; }
