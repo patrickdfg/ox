@@ -24,7 +24,7 @@ async function createRoom() {
     $("game-error").textContent = "퀴즈를 찾을 수 없어요. 저장한 Google 계정으로 로그인해 주세요.";
     return;
   }
-  document.body.className = `game theme-${quiz.theme}`;
+  document.body.className = `game host-screen theme-${quiz.theme}`;
   $("game-title").textContent = quiz.title;
   do { pin = String(Math.floor(100000 + Math.random() * 900000)); }
   while ((await get(at(`games/${pin}`))).exists());
@@ -110,3 +110,13 @@ $("start-btn").onclick = () => goQuestion(0).catch(report);
 $("skip-btn").onclick = () => reveal().catch(report);
 $("next-btn").onclick = () => (qIndex + 1 < quiz.questions.length ? goQuestion(qIndex + 1) : finish()).catch(report);
 createRoom().catch(error => { show("lobby"); $("pin").textContent = "연결 실패"; report(error); });
+
+const fsButton = $("fs-btn");
+const toggleFullscreen = () => {
+  if (document.fullscreenElement) document.exitFullscreen();
+  else document.documentElement.requestFullscreen?.().catch(() => {});
+};
+fsButton.onclick = toggleFullscreen;
+if (!document.documentElement.requestFullscreen) fsButton.hidden = true;
+document.addEventListener("fullscreenchange", () => document.body.classList.toggle("is-fullscreen", Boolean(document.fullscreenElement)));
+document.addEventListener("keydown", event => { if ((event.key === "f" || event.key === "F") && !event.ctrlKey && !event.metaKey && !event.altKey) toggleFullscreen(); });
