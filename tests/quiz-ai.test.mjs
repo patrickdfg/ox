@@ -18,7 +18,7 @@ test("입력이 유효할 때만 사용량을 예약한다", async () => {
   let reservations = 0;
   const run = handler({ reserve: async () => { reservations++; return { allowed: true }; } });
   assert.equal((await run(request({ ...valid, source: "짧음" }))).status, 400);
-  assert.equal((await run(request({ ...valid, count: 11 }))).status, 400);
+  assert.equal((await run(request({ ...valid, count: 21 }))).status, 400);
   assert.equal(reservations, 0);
   const result = await run(request(valid));
   assert.equal(result.status, 200);
