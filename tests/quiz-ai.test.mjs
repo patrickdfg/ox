@@ -40,3 +40,26 @@ test("유형·보기·정답이 잘못된 AI 결과는 표시하지 않는다", 
   ];
   for (const item of cases) assert.equal((await handler({ generate: async () => [item] })(request(valid))).status, 502);
 });
+
+test("AI가 정답을 모두 1번에 배치해도 객관식 정답 위치를 골고루 바꾼다", async () => {
+  const generated = Array.from({ length: 12 }, (_, index) => ({
+    type: "choice",
+    q: `성경 인물 문제 ${index + 1}`,
+    options: [`정답 ${index}`, `오답 A ${index}`, `오답 B ${index}`, `오답 C ${index}`],
+    answer: 0,
+    exp: `해설 ${index}`
+  }));
+  const run = handler({ generate: async () => generated });
+  const result = await run(request({ source, count: 12, type: "choice" }));
+  assert.equal(result.status, 200);
+  const { questions } = await result.json();
+  assert.equal(questions.length, 12);
+  const positionCounts = [0, 0, 0, 0];
+  questions.forEach((item, index) => {
+    positionCounts[item.answer]++;
+    assert.equal(item.options[item.answer], `정답 ${index}`);
+    assert.deepEqual([...item.options].sort(), [...generated[index].options].sort());
+    assert.equal(item.exp, `해설 ${index}`);
+  });
+  assert.deepEqual(positionCounts, [3, 3, 3, 3]);
+});
