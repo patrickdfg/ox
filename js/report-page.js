@@ -23,6 +23,7 @@ $("report-list").onclick=async event=> {
   try {
     if(event.target.dataset.delete) {
       if(!confirm("이 결과와 해당 게임의 학생 응답을 삭제할까요?")) return;
+      if(reports[id].classCode && reports[id].assignmentId) await remove(at(`classes/${reports[id].classCode}/assignments/${reports[id].assignmentId}`));
       await remove(at(`sessionKeys/${id}`)); await remove(at(`sessions/${id}`)); await remove(at(`reports/${user.uid}/${id}`));
       event.target.closest("article").remove(); $("report-detail").hidden=true; return;
     }

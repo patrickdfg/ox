@@ -3,6 +3,7 @@ import { loadQuiz, sampleQuiz } from "./store.js";
 import { auth, authReady } from "./auth.js";
 import qrcode from "https://cdn.jsdelivr.net/npm/qrcode-generator@2.0.4/dist/qrcode.mjs";
 
+import { renderRace } from "./race.js";
 import { participant, saveKeys } from "./session.js";
 import { buildReport } from "./reports.mjs";
 import { rankHtml, podium, updateClock } from "./game-effects.js";
@@ -10,7 +11,7 @@ import { rankHtml, podium, updateClock } from "./game-effects.js";
 const $ = id => document.getElementById(id);
 const show = name => ["lobby", "question", "reveal", "end"].forEach(s => $(s).hidden = s !== name);
 const quizId = new URLSearchParams(location.search).get("quiz") || "sample";
-const mode = new URLSearchParams(location.search).get("mode") === "self" ? "self" : "live";
+const mode = ["self","battle"].includes(new URLSearchParams(location.search).get("mode")) ? new URLSearchParams(location.search).get("mode") : "live";
 let quiz, owner;
 let pin = "", game = {}, qIndex = -1, timer = null, revealing = false;
 const players = () => Object.entries(game.players || {}).map(([id, player]) => ({ id, ...player }));
@@ -58,6 +59,7 @@ async function createRoom() {
   show("lobby");
   onValue(at(`sessions/${pin}`), snapshot => {
     game = snapshot.val() || {};
+    renderRace($("race-panel"),game);
     const list = players();
     $("player-count").textContent = list.length;
     $("player-list").innerHTML = list.map(p => `<li>${esc(p.name)}</li>`).join("");
