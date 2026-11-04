@@ -48,9 +48,14 @@ async function createRoom() {
     quiz = (await get(at(`reports/${owner}/${pin}/quiz`))).val() || quiz;
   }
   else {
-  do { pin = String(Math.floor(100000 + Math.random() * 900000)); }
-  while ((await get(at(`sessions/${pin}`))).exists());
-  await set(at(`sessions/${pin}`), { owner, mode, questions: mode === "self" ? quiz.questions.map(({answer,exp,...item})=>item) : null, state: mode === "self" ? "question" : "lobby", q: -1, title: quiz.title, theme: quiz.theme, total: quiz.questions.length, createdAt: serverTimestamp() });
+  let available = false;
+  for (let attempt = 0; attempt < 20 && !available; attempt++) {
+    pin = String(Math.floor(100000 + Math.random() * 900000));
+    try { available = !(await get(at(`sessions/${pin}`))).exists(); }
+    catch (error) { if (error.code !== "PERMISSION_DENIED" || attempt === 19) throw error; }
+  }
+  if (!available) throw new Error("방을 만들지 못했어요. 다시 시도해 주세요.");
+  await set(at(`sessions/${pin}`), { owner, mode, ...(directSelf ? { solo: true } : {}), questions: mode === "self" ? quiz.questions.map(({answer,exp,...item})=>item) : null, state: mode === "self" ? "question" : "lobby", q: -1, title: quiz.title, theme: quiz.theme, total: quiz.questions.length, createdAt: serverTimestamp() });
   await saveKeys(pin, quiz, owner);
   sessionStorage.setItem(sessionKey,pin);
   await persist();

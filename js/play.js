@@ -19,7 +19,7 @@ $("join-form").onsubmit=async event=> {
     const user=await participant(), found=await findSession(inputPin);
     if(!found) throw new Error("방을 찾을 수 없어요. PIN을 확인하세요.");
     if(!found.secure) throw new Error("이전 버전 방이에요. 진행자가 새 방을 열어 주세요.");
-    if(directSolo && (found.game.mode!=="self" || found.game.owner!==user.uid)) throw new Error("이 자율 학습을 열 수 없어요. 처음부터 다시 시작해 주세요.");
+    if(directSolo && (found.game.mode!=="self" || found.game.solo!==true || found.game.owner!==user.uid)) throw new Error("이 자율 학습을 열 수 없어요. 처음부터 다시 시작해 주세요.");
     if(found.game.state==="end") throw new Error("이미 끝난 게임이에요.");
     pin=inputPin;pid=user.uid;room=found.path;
     if(!found.game.players?.[pid]) await set(at(`${room}/players/${pid}`),{name:name.slice(0,12),score:0,last:0});

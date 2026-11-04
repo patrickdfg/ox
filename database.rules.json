@@ -16,14 +16,14 @@
     },
     "sessions": {
       "$pin": {
-        ".read": "auth != null && (!root.child('sessions').child($pin).child('classCode').exists() || root.child('classes').child(root.child('sessions').child($pin).child('classCode').val()).child('owner').val() === auth.uid || root.child('classes').child(root.child('sessions').child($pin).child('classCode').val()).child('members').child(auth.uid).exists())",
+        ".read": "auth != null && (!root.child('sessions').child($pin).child('classCode').exists() || root.child('classes').child(root.child('sessions').child($pin).child('classCode').val()).child('owner').val() === auth.uid || root.child('classes').child(root.child('sessions').child($pin).child('classCode').val()).child('members').child(auth.uid).exists()) && (!root.child('sessions').child($pin).child('solo').exists() || root.child('sessions').child($pin).child('owner').val() === auth.uid)",
         ".write": "auth != null && ((!data.exists() && newData.child('owner').val() === auth.uid && newData.child('createdAt').val() === now) || data.child('owner').val() === auth.uid)",
         "owner": {
           ".validate": "newData.isString() && (!data.exists() || newData.val() === data.val())"
         },
         "players": {
           "$uid": {
-            ".write": "auth != null && auth.uid === $uid && !data.exists() && root.child('sessions').child($pin).exists() && root.child('sessions').child($pin).child('state').val() !== 'end' && (!root.child('sessions').child($pin).child('classCode').exists() || root.child('classes').child(root.child('sessions').child($pin).child('classCode').val()).child('owner').val() === auth.uid || root.child('classes').child(root.child('sessions').child($pin).child('classCode').val()).child('members').child(auth.uid).exists())",
+            ".write": "auth != null && auth.uid === $uid && !data.exists() && root.child('sessions').child($pin).exists() && root.child('sessions').child($pin).child('state').val() !== 'end' && (!root.child('sessions').child($pin).child('classCode').exists() || root.child('classes').child(root.child('sessions').child($pin).child('classCode').val()).child('owner').val() === auth.uid || root.child('classes').child(root.child('sessions').child($pin).child('classCode').val()).child('members').child(auth.uid).exists()) && (!root.child('sessions').child($pin).child('solo').exists() || root.child('sessions').child($pin).child('owner').val() === auth.uid)",
             ".validate": "newData.hasChildren(['name','score','last'])",
             "name": {
               ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 12"
@@ -42,7 +42,7 @@
         "starts": {
           "$uid": {
             "$q": {
-              ".write": "auth != null && auth.uid === $uid && auth != null && root.child('sessions').child($pin).child('players').child(auth.uid).exists() && !data.exists() && root.child('sessions').child($pin).child('state').val() === 'question' && root.child('sessions').child($pin).child('mode').val() === 'self' && root.child('sessions').child($pin).child('questions').child($q).exists() && (!root.child('sessions').child($pin).child('classCode').exists() || root.child('classes').child(root.child('sessions').child($pin).child('classCode').val()).child('owner').val() === auth.uid || root.child('classes').child(root.child('sessions').child($pin).child('classCode').val()).child('members').child(auth.uid).exists())",
+              ".write": "auth != null && auth.uid === $uid && auth != null && root.child('sessions').child($pin).child('players').child(auth.uid).exists() && !data.exists() && root.child('sessions').child($pin).child('state').val() === 'question' && root.child('sessions').child($pin).child('mode').val() === 'self' && root.child('sessions').child($pin).child('questions').child($q).exists() && (!root.child('sessions').child($pin).child('classCode').exists() || root.child('classes').child(root.child('sessions').child($pin).child('classCode').val()).child('owner').val() === auth.uid || root.child('classes').child(root.child('sessions').child($pin).child('classCode').val()).child('members').child(auth.uid).exists()) && (!root.child('sessions').child($pin).child('solo').exists() || root.child('sessions').child($pin).child('owner').val() === auth.uid)",
               ".validate": "newData.hasChildren(['t','q']) && newData.child('t').val() === now && newData.child('q').isNumber() && newData.child('q').val()+'' === $q && (newData.child('q').val() === 0 || root.child('sessions').child($pin).child('answers').child((newData.child('q').val()-1)+'').child(auth.uid).exists())",
               "t": {
                 ".validate": "newData.isNumber()"
@@ -59,7 +59,7 @@
         "answers": {
           "$q": {
             "$uid": {
-              ".write": "auth != null && auth.uid === $uid && auth != null && root.child('sessions').child($pin).child('players').child(auth.uid).exists() && !data.exists() && root.child('sessions').child($pin).child('state').val() === 'question' && ((root.child('sessions').child($pin).child('mode').val() !== 'self' && root.child('sessions').child($pin).child('q').val()+'' === $q && now >= root.child('sessions').child($pin).child('qStart').val() && now <= root.child('sessions').child($pin).child('qStart').val() + root.child('sessions').child($pin).child('current/time').val()*1000) || (root.child('sessions').child($pin).child('mode').val() === 'self' && root.child('sessions').child($pin).child('starts').child(auth.uid).child($q).exists() && now >= root.child('sessions').child($pin).child('starts').child(auth.uid).child($q).child('t').val() && (newData.child('a').val() === -1 || now <= root.child('sessions').child($pin).child('starts').child(auth.uid).child($q).child('t').val() + root.child('sessions').child($pin).child('questions').child($q).child('time').val()*1000))) && (!root.child('sessions').child($pin).child('classCode').exists() || root.child('classes').child(root.child('sessions').child($pin).child('classCode').val()).child('owner').val() === auth.uid || root.child('classes').child(root.child('sessions').child($pin).child('classCode').val()).child('members').child(auth.uid).exists())",
+              ".write": "auth != null && auth.uid === $uid && auth != null && root.child('sessions').child($pin).child('players').child(auth.uid).exists() && !data.exists() && root.child('sessions').child($pin).child('state').val() === 'question' && ((root.child('sessions').child($pin).child('mode').val() !== 'self' && root.child('sessions').child($pin).child('q').val()+'' === $q && now >= root.child('sessions').child($pin).child('qStart').val() && now <= root.child('sessions').child($pin).child('qStart').val() + root.child('sessions').child($pin).child('current/time').val()*1000) || (root.child('sessions').child($pin).child('mode').val() === 'self' && root.child('sessions').child($pin).child('starts').child(auth.uid).child($q).exists() && now >= root.child('sessions').child($pin).child('starts').child(auth.uid).child($q).child('t').val() && (newData.child('a').val() === -1 || now <= root.child('sessions').child($pin).child('starts').child(auth.uid).child($q).child('t').val() + root.child('sessions').child($pin).child('questions').child($q).child('time').val()*1000))) && (!root.child('sessions').child($pin).child('classCode').exists() || root.child('classes').child(root.child('sessions').child($pin).child('classCode').val()).child('owner').val() === auth.uid || root.child('classes').child(root.child('sessions').child($pin).child('classCode').val()).child('members').child(auth.uid).exists()) && (!root.child('sessions').child($pin).child('solo').exists() || root.child('sessions').child($pin).child('owner').val() === auth.uid)",
               ".validate": "newData.hasChildren(['a','t']) && newData.child('t').val() === now && newData.child('a').isNumber() && newData.child('a').val()%1 === 0 && ((root.child('sessions').child($pin).child('mode').val() !== 'self' && root.child('sessions').child($pin).child('q').val()+'' === $q && newData.child('a').val() >= 0 && root.child('sessions').child($pin).child('current/options').child(newData.child('a').val()+'').exists()) || (root.child('sessions').child($pin).child('mode').val() === 'self' && root.child('sessions').child($pin).child('starts').child(auth.uid).child($q).exists() && newData.child('a').val() >= -1 && (newData.child('a').val() === -1 || root.child('sessions').child($pin).child('questions').child($q).child('options').child(newData.child('a').val()+'').exists())))",
               "a": {
                 ".validate": "newData.isNumber()"
@@ -73,9 +73,12 @@
             }
           }
         },
-        ".validate": "newData.hasChildren(['owner','mode','state','createdAt']) && (!data.child('classCode').exists() || newData.child('classCode').val() === data.child('classCode').val())",
+        ".validate": "newData.hasChildren(['owner','mode','state','createdAt']) && (!data.child('classCode').exists() || newData.child('classCode').val() === data.child('classCode').val()) && (!data.child('solo').exists() || newData.child('solo').val() === true)",
         "classCode": {
           ".validate": "newData.isString() && root.child('classes').child(newData.val()).child('owner').val() === auth.uid"
+        },
+        "solo": {
+          ".validate": "newData.val() === true && newData.parent().child('mode').val() === 'self'"
         }
       }
     },
@@ -88,7 +91,7 @@
         },
         "questions": {
           "$q": {
-            ".read": "auth != null && root.child('sessions').child($pin).child('players').child(auth.uid).exists() && root.child('sessions').child($pin).child('mode').val() === 'self' && root.child('sessions').child($pin).child('answers').child($q).child(auth.uid).exists() && (!root.child('sessions').child($pin).child('classCode').exists() || root.child('classes').child(root.child('sessions').child($pin).child('classCode').val()).child('owner').val() === auth.uid || root.child('classes').child(root.child('sessions').child($pin).child('classCode').val()).child('members').child(auth.uid).exists())"
+            ".read": "auth != null && root.child('sessions').child($pin).child('players').child(auth.uid).exists() && root.child('sessions').child($pin).child('mode').val() === 'self' && root.child('sessions').child($pin).child('answers').child($q).child(auth.uid).exists() && (!root.child('sessions').child($pin).child('classCode').exists() || root.child('classes').child(root.child('sessions').child($pin).child('classCode').val()).child('owner').val() === auth.uid || root.child('classes').child(root.child('sessions').child($pin).child('classCode').val()).child('members').child(auth.uid).exists()) && (!root.child('sessions').child($pin).child('solo').exists() || root.child('sessions').child($pin).child('owner').val() === auth.uid)"
           }
         }
       }
