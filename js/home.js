@@ -7,7 +7,7 @@ const status = document.getElementById("account-status");
 let request = 0;
 async function render(user) {
   const current = ++request;
-  list.innerHTML = "<p class='library-message'>퀴즈를 불러오는 중이에요.</p>";
+  list.innerHTML = Array.from({ length: 3 }, () => "<div class='quiz-skeleton' aria-hidden='true'><div class='skeleton-cover'></div><div class='skeleton-body'><div class='skeleton-line short'></div><div class='skeleton-line'></div><div class='skeleton-line medium'></div></div></div>").join("") + "<span class='sr-only' role='status'>퀴즈를 불러오는 중이에요.</span>";
   let quizzes = [];
   try { if (user) quizzes = await loadQuizzes(user.uid); }
   catch (error) {
