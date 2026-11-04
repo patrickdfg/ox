@@ -124,7 +124,7 @@ $("ai-generate").onclick = async () => {
   const source = $("ai-source").value.trim();
   const targetQuiz = quiz;
   if (!user || user.uid !== ownerUid) { $("ai-message").textContent = "Google 로그인 후 이용해 주세요."; return; }
-  if (source.length < 30 || source.length > 15000) { $("ai-message").textContent = "원고는 30~15,000자로 입력해 주세요."; return; }
+  if (!source || source.length > 15000) { $("ai-message").textContent = "원고나 퀴즈 주제를 입력해 주세요. (최대 15,000자)"; return; }
   $("ai-generate").disabled = true;
   $("ai-message").textContent = "원고를 읽고 문제를 만들고 있어요.";
   try {
