@@ -13,39 +13,64 @@ function mesh(geometry, material, x, y, z) {
   return result;
 }
 
-function astronaut(color, first) {
+function astronaut(color, rank) {
   const group = new THREE.Group();
-  const suit = new THREE.MeshStandardMaterial({ color, roughness: 0.38, metalness: 0.12 });
-  const helmet = new THREE.MeshStandardMaterial({ color: 0xf8f6ff, roughness: 0.3, metalness: 0.12 });
-  const visor = new THREE.MeshStandardMaterial({ color: 0x27355e, roughness: 0.18, metalness: 0.25 });
-  const white = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 });
-  const dark = new THREE.MeshStandardMaterial({ color: 0x111a37, roughness: 0.3 });
+  const suit = new THREE.MeshStandardMaterial({ color, roughness: 0.48, metalness: 0.06 });
+  const skin = new THREE.MeshStandardMaterial({ color: { 1: 0xffe0ac, 2: 0xcdeaff, 3: 0xffb58f }[rank], roughness: 0.55 });
+  const cream = new THREE.MeshStandardMaterial({ color: 0xfff6ec, roughness: 0.6 });
+  const pink = new THREE.MeshStandardMaterial({ color: 0xf59dab, roughness: 0.65 });
+  const white = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.35 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x302738, roughness: 0.28 });
   const sphere = new THREE.SphereGeometry(1, 24, 16);
   const addBall = (material, x, y, z, sx, sy, sz) => {
     const ball = mesh(sphere, material, x, y, z);
     ball.scale.set(sx, sy, sz); group.add(ball); return ball;
   };
-  addBall(suit, 0, 0.56, 0, 0.58, 0.62, 0.44);
-  addBall(helmet, -0.28, 0.13, 0.11, 0.21, 0.16, 0.27);
-  addBall(helmet, 0.28, 0.13, 0.11, 0.21, 0.16, 0.27);
-  const leftArm = addBall(suit, -0.65, 0.67, 0, 0.17, 0.44, 0.17);
-  leftArm.rotation.z = -0.85;
-  const rightArm = addBall(suit, 0.65, 0.67, 0, 0.17, 0.44, 0.17);
-  rightArm.rotation.z = 0.85;
-  addBall(helmet, -0.93, 0.93, 0.02, 0.17, 0.17, 0.17);
-  addBall(helmet, 0.93, 0.93, 0.02, 0.17, 0.17, 0.17);
-  addBall(helmet, 0, 1.44, 0, 0.76, 0.75, 0.67);
-  addBall(visor, 0, 1.43, 0.51, 0.63, 0.51, 0.2);
-  for (const x of [-0.23, 0.23]) {
-    addBall(white, x, 1.49, 0.685, 0.105, 0.13, 0.055);
-    addBall(dark, x, 1.47, 0.736, 0.048, 0.07, 0.03);
-    addBall(white, x + 0.015, 1.5, 0.762, 0.018, 0.022, 0.012);
+  if (rank === 3) {
+    const tail = addBall(skin, 0.67, 0.42, -0.26, 0.4, 0.22, 0.2); tail.rotation.z = 0.65;
+    const tailTip = addBall(cream, 0.91, 0.58, -0.26, 0.19, 0.16, 0.16); tailTip.rotation.z = 0.65;
   }
-  const smile = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.018, 8, 20, Math.PI), white);
-  smile.rotation.z = Math.PI; smile.position.set(0, 1.3, 0.725); group.add(smile);
-  const badge = new THREE.Mesh(new THREE.CircleGeometry(0.12, 24), white);
-  badge.position.set(0, 0.66, 0.44); group.add(badge);
-  if (first) {
+  addBall(suit, 0, 0.55, 0, 0.57, 0.6, 0.43);
+  addBall(cream, 0, 0.52, 0.39, 0.31, 0.3, 0.07);
+  addBall(skin, -0.28, 0.13, 0.13, 0.23, 0.16, 0.27);
+  addBall(skin, 0.28, 0.13, 0.13, 0.23, 0.16, 0.27);
+  const arm = side => {
+    const limb = new THREE.Group(); limb.position.set(side * 0.45, 0.7, 0); limb.rotation.z = -side * 1.1;
+    const sleeve = mesh(sphere, suit, 0, 0.17, 0); sleeve.scale.set(0.17, 0.33, 0.17); limb.add(sleeve);
+    const paw = mesh(sphere, skin, 0, 0.45, 0.01); paw.scale.set(0.18, 0.18, 0.17); limb.add(paw); group.add(limb);
+    return limb;
+  };
+  const leftArm = arm(-1), rightArm = arm(1);
+  if (rank === 2) {
+    for (const side of [-1, 1]) {
+      const ear = addBall(skin, side * 0.43, 2.05, -0.08, 0.18, 0.42, 0.15); ear.rotation.z = -side * 0.22;
+      const inner = addBall(pink, side * 0.43, 2.07, 0.05, 0.09, 0.31, 0.035); inner.rotation.z = -side * 0.22;
+    }
+  } else if (rank === 3) {
+    for (const side of [-1, 1]) {
+      const ear = mesh(new THREE.ConeGeometry(0.24, 0.44, 24), skin, side * 0.48, 2.02, -0.05); ear.rotation.z = -side * 0.28; group.add(ear);
+      const inner = mesh(new THREE.ConeGeometry(0.12, 0.27, 24), cream, side * 0.48, 2.01, 0.14); inner.rotation.z = -side * 0.28; group.add(inner);
+    }
+  } else {
+    for (const side of [-1, 1]) {
+      addBall(skin, side * 0.52, 1.96, -0.06, 0.25, 0.25, 0.16);
+      addBall(pink, side * 0.52, 1.96, 0.09, 0.12, 0.12, 0.035);
+    }
+  }
+  addBall(skin, 0, 1.47, 0, 0.76, 0.69, 0.6);
+  addBall(cream, 0, 1.27, 0.54, 0.3, 0.18, 0.13);
+  for (const x of [-0.25, 0.25]) {
+    addBall(dark, x, 1.51, 0.54, 0.105, 0.135, 0.075);
+    addBall(white, x - 0.03, 1.56, 0.608, 0.035, 0.043, 0.02);
+    addBall(white, x + 0.035, 1.47, 0.61, 0.014, 0.017, 0.01);
+  }
+  for (const x of [-0.45, 0.45]) addBall(pink, x, 1.29, 0.47, 0.115, 0.065, 0.035);
+  addBall(dark, 0, 1.31, 0.665, 0.055, 0.04, 0.025);
+  const smile = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.014, 8, 20, Math.PI), dark);
+  smile.rotation.z = Math.PI; smile.position.set(0, 1.22, 0.665); group.add(smile);
+  const badge = new THREE.Mesh(new THREE.CircleGeometry(0.1, 5), new THREE.MeshStandardMaterial({ color: 0xffda75, roughness: 0.4 }));
+  badge.rotation.z = Math.PI / 2; badge.position.set(0, 0.55, 0.47); group.add(badge);
+  if (rank === 1) {
     const gold = new THREE.MeshStandardMaterial({ color: 0xffd45f, metalness: 0.6, roughness: 0.25 });
     const crown = mesh(new THREE.CylinderGeometry(0.28, 0.24, 0.13, 8), gold, 0, 2.22, 0);
     group.add(crown);
@@ -108,7 +133,7 @@ export function showPodium(container, groups, replay) {
     group.add(numberPlate(rank, height));
     const members = groups.filter(player => player.rank === rank);
     let character;
-    if (members.length) { character = astronaut(suits[rank], rank === 1); character.group.position.y = height + 0.09; group.add(character.group); }
+    if (members.length) { character = astronaut(suits[rank], rank); character.group.position.y = height + 0.09; group.add(character.group); }
     scene.add(group); actors.push({ group, character, rank });
     const label = document.createElement("article"); label.className = `podium-caption rank-${rank}`; label.style.setProperty("--podium-delay", `${delays[rank]}s`);
     const heading = document.createElement("strong"); heading.textContent = `${["", "🥇", "🥈", "🥉"][rank]} ${members.length > 1 ? "공동 " : ""}${rank}위`;
@@ -158,8 +183,8 @@ export function showPodium(container, groups, replay) {
       actor.group.position.y = -3.2 * (1 - eased);
       if (actor.character && progress === 1 && !reduced) {
         actor.character.group.position.y = heights[actor.rank] + .09 + Math.sin(time * 3 + actor.rank) * .045;
-        actor.character.leftArm.rotation.z = -.85 - Math.sin(time * 4) * .16;
-        actor.character.rightArm.rotation.z = .85 + Math.sin(time * 4) * .16;
+        actor.character.leftArm.rotation.z = 1.1 + Math.sin(time * 4) * .16;
+        actor.character.rightArm.rotation.z = -1.1 - Math.sin(time * 4) * .16;
       }
     }
     for (const burst of fireworks) {
