@@ -61,3 +61,17 @@ test('늦은 응답·추가 필드·정답 키 덮어쓰기는 거부한다',asy
  await assertFails(set(ref(db('outsider'),'sessionKeys/123456'),{owner:'outsider',questions:[{answer:0}]}));
  await assertFails(set(ref(db('outsider'),'sessions/123456/players/new'),{name:'위조',score:0,last:0,admin:true}));
 });
+test('혼자 푸는 학습은 소유자만 열고 참가할 수 있다',async()=>{
+ const owner=db('teacher'), outsider=db('outsider');
+ await assertSucceeds(set(ref(owner,'sessions/456789'),{owner:'teacher',mode:'self',solo:true,state:'question',q:-1,total:1,createdAt:serverTimestamp(),questions:[{q:'혼자 풀기',time:120,options:['O','X']}]}));
+ await assertSucceeds(set(ref(owner,'sessionKeys/456789'),{owner:'teacher',questions:[{answer:0,text:'O'}]}));
+ await assertFails(get(ref(outsider,'sessions/456789')));
+ await assertFails(set(ref(outsider,'sessions/456789/players/outsider'),{name:'다른 사람',score:0,last:0}));
+ await assertFails(remove(ref(owner,'sessions/456789/solo')));
+ await assertSucceeds(set(ref(owner,'sessions/456789/players/teacher'),{name:'나',score:0,last:0}));
+ await assertSucceeds(set(ref(owner,'sessions/456789/starts/teacher/0'),{q:0,t:serverTimestamp()}));
+ await assertSucceeds(set(ref(owner,'sessions/456789/answers/0/teacher'),{a:0,t:serverTimestamp()}));
+ await assertSucceeds(get(ref(owner,'sessionKeys/456789/questions/0')));
+ await assertSucceeds(remove(ref(owner,'sessionKeys/456789')));
+ await assertSucceeds(remove(ref(owner,'sessions/456789')));
+});

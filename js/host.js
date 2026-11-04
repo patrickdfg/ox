@@ -9,9 +9,10 @@ import { buildReport } from "./reports.mjs";
 import { rankHtml, podium, updateClock } from "./game-effects.js";
 
 const $ = id => document.getElementById(id);
-const show = name => ["lobby", "question", "reveal", "end"].forEach(s => $(s).hidden = s !== name);
+const show = name => ["solo-preparing", "lobby", "question", "reveal", "end"].forEach(s => $(s).hidden = s !== name);
 const quizId = new URLSearchParams(location.search).get("quiz") || "sample";
 const mode = ["self","battle"].includes(new URLSearchParams(location.search).get("mode")) ? new URLSearchParams(location.search).get("mode") : "live";
+const directSelf = mode === "self" && new URLSearchParams(location.search).get("direct") === "1";
 let quiz, owner;
 let pin = "", game = {}, qIndex = -1, timer = null, revealing = false;
 const players = () => Object.entries(game.players || {}).map(([id, player]) => ({ id, ...player }));
@@ -19,6 +20,7 @@ const ranking = () => players().sort((a, b) => b.score - a.score);
 
 
 async function createRoom() {
+  if (directSelf) show("solo-preparing");
   owner = (await participant()).uid;
   if (quizId === "sample") quiz = sampleQuiz();
   else {
@@ -26,6 +28,10 @@ async function createRoom() {
     if (auth.currentUser) quiz = await loadQuiz(auth.currentUser.uid, quizId);
   }
   if (!quiz) {
+    if (directSelf) {
+      $("solo-preparing-message").textContent = "퀴즈를 찾지 못했어요. 저장한 Google 계정으로 로그인해 주세요.";
+      return;
+    }
     show("lobby");
     $("pin").textContent = "퀴즈 없음";
     $("game-error").textContent = "퀴즈를 찾을 수 없어요. 저장한 Google 계정으로 로그인해 주세요.";
@@ -33,19 +39,30 @@ async function createRoom() {
   }
   document.body.className = `game host-screen theme-${quiz.theme}`;
   $("game-title").textContent = quiz.title;
-  const saved = sessionStorage.getItem(`quiz-host-${quizId}-${mode}`);
+  const sessionKey = directSelf ? `quiz-solo-${quizId}` : `quiz-host-${quizId}-${mode}`;
+  const saved = sessionStorage.getItem(sessionKey);
   const existing = saved ? (await get(at(`sessions/${saved}`))).val() : null;
-  if (existing?.owner === owner && existing.state !== "end") {
+  const completed = directSelf && existing?.total && Array.from({ length: existing.total }, (_, i) => existing.answers?.[i]?.[owner]).every(Boolean);
+  if (existing?.owner === owner && existing.state !== "end" && !completed) {
     pin = saved;
     quiz = (await get(at(`reports/${owner}/${pin}/quiz`))).val() || quiz;
   }
   else {
-  do { pin = String(Math.floor(100000 + Math.random() * 900000)); }
-  while ((await get(at(`sessions/${pin}`))).exists());
-  await set(at(`sessions/${pin}`), { owner, mode, questions: mode === "self" ? quiz.questions.map(({answer,exp,...item})=>item) : null, state: mode === "self" ? "question" : "lobby", q: -1, title: quiz.title, theme: quiz.theme, total: quiz.questions.length, createdAt: serverTimestamp() });
+  let available = false;
+  for (let attempt = 0; attempt < 20 && !available; attempt++) {
+    pin = String(Math.floor(100000 + Math.random() * 900000));
+    try { available = !(await get(at(`sessions/${pin}`))).exists(); }
+    catch (error) { if (error.code !== "PERMISSION_DENIED" || attempt === 19) throw error; }
+  }
+  if (!available) throw new Error("방을 만들지 못했어요. 다시 시도해 주세요.");
+  await set(at(`sessions/${pin}`), { owner, mode, ...(directSelf ? { solo: true } : {}), questions: mode === "self" ? quiz.questions.map(({answer,exp,...item})=>item) : null, state: mode === "self" ? "question" : "lobby", q: -1, title: quiz.title, theme: quiz.theme, total: quiz.questions.length, createdAt: serverTimestamp() });
   await saveKeys(pin, quiz, owner);
-  sessionStorage.setItem(`quiz-host-${quizId}-${mode}`,pin);
+  sessionStorage.setItem(sessionKey,pin);
   await persist();
+  }
+  if (directSelf) {
+    location.replace(`play.html?pin=${encodeURIComponent(pin)}&solo=1`);
+    return;
   }
   if(mode === "self") { $("start-btn").textContent="학습 종료 · 결과 저장"; $("self-note").hidden=false; }
   const playUrl = new URL("play.html", location.href).href;
@@ -154,7 +171,10 @@ function report(error) { console.error(error); $("game-error").textContent = "�
 $("start-btn").onclick = () => (mode === "self" ? finish() : goQuestion(0)).catch(report);
 $("skip-btn").onclick = () => reveal().catch(report);
 $("next-btn").onclick = () => (qIndex + 1 < quiz.questions.length ? goQuestion(qIndex + 1) : finish()).catch(report);
-createRoom().catch(error => { show("lobby"); $("pin").textContent = "연결 실패"; report(error); });
+createRoom().catch(error => {
+  if (directSelf) { console.error(error); show("solo-preparing"); $("solo-preparing-message").textContent = "학습을 시작하지 못했어요. 인터넷 연결을 확인한 뒤 다시 시도해 주세요."; return; }
+  show("lobby"); $("pin").textContent = "연결 실패"; report(error);
+});
 
 const fsButton = $("fs-btn");
 const toggleFullscreen = () => {
