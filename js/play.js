@@ -1,5 +1,7 @@
 import { at, set, get, onValue, serverTimestamp, esc } from "./db.js";
 
+import { podium, updateClock } from "./game-effects.js";
+
 const $ = id => document.getElementById(id);
 const show = name => ["join", "wait", "question", "sent", "result", "end"].forEach(s => $(s).hidden = s !== name);
 let pin = "", pid = "", lastKey = "", timer = null, currentGame = null;
@@ -41,6 +43,8 @@ function render(game) {
   if (game.state === "question") {
     if (game.answers?.[game.q]?.[pid]) return show("sent");
     const item = game.current;
+    $("question-progress").value = game.q + 1;
+    $("question-progress").max = game.total;
     $("pq-num").textContent = `QUESTION ${game.q + 1} / ${game.total}`;
     $("pq-text").textContent = item.q;
     $("pq-image").hidden = !item.image;
@@ -51,7 +55,7 @@ function render(game) {
     $("player-options").innerHTML = item.options.map((option, i) => `<button class="answer-tile color-${i}" data-answer="${i}"><span>${["◆", "●", "▲", "■"][i]}</span>${esc(option)}</button>`).join("");
     const tick = () => {
       const left = Math.max(0, Math.ceil((game.qStart + item.time * 1000 - Date.now()) / 1000));
-      $("p-timer").textContent = left;
+      updateClock($("p-timer"), game.qStart + item.time * 1000 - Date.now(), item.time);
       if (!left) document.querySelectorAll("[data-answer]").forEach(button => button.disabled = true);
     };
     tick();
@@ -67,6 +71,7 @@ function render(game) {
     return show("result");
   }
   if (game.state === "end") {
+    podium($("podium"), Object.values(game.players || {}));
     $("end-rank").textContent = `${rankOf(game)}등`;
     $("end-score").textContent = `${me?.score || 0}점`;
     return show("end");

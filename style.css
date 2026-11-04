@@ -194,3 +194,17 @@ a { color:inherit; text-decoration:none; }
  .quiz-card,.hero-card,.screen:not([hidden]),.editor-panel,.quiz-skeleton .skeleton-cover,.quiz-skeleton .skeleton-line { animation:none!important; }
  .quiz-card,.theme-toggle { transition:none!important; }
 }
+
+/* 게임 진행과 결과 피드백 */
+.clock { --remaining:100%; background:conic-gradient(#ffda72 var(--remaining), #ffffff25 0); border-radius:50%; box-shadow:inset 0 0 0 7px #24143b; min-width:64px; min-height:64px; display:inline-grid; place-items:center; color:#fff; }
+.time-progress { height:10px; border-radius:8px; background:#ffffff25; width:min(600px,100%); margin:16px auto; overflow:hidden; }
+.time-progress::before { content:""; display:block; width:var(--remaining,100%); height:100%; background:#ffda72; transition:width .1s linear; }
+#question-progress { width:100%; height:8px; accent-color:#ffda72; display:block; margin:12px 0; }
+.podium { display:flex; justify-content:center; align-items:flex-end; flex-wrap:wrap; gap:16px; margin:24px auto; max-width:900px; }
+.podium-place { display:grid; gap:8px; min-width:150px; padding:24px 16px; background:#34234f; color:#fff; border:2px solid #b9a5e3; border-radius:24px 24px 8px 8px; overflow-wrap:anywhere; }
+.podium-place span { font-size:3rem; }.podium-place small { font-size:.75rem; }.place-1 { border-color:#ffda72; padding-top:48px; }.place-2 { border-color:#d1d6ef; }.place-3 { border-color:#e1a27a; }
+.celebrating .podium-place, #reveal:not([hidden]) .correct, #result:not([hidden]) .big { animation:quiz-pop .6s ease-out; }
+@keyframes quiz-pop { from { transform:translateY(18px) scale(.92); opacity:.2; } to { transform:translateY(0) scale(1); opacity:1; } }
+:focus-visible { outline:3px solid #ffda72; outline-offset:4px; }
+@media(max-width:600px) { .podium { gap:8px; }.podium-place { min-width:90px; flex:1; padding:18px 8px; }.podium-place span { font-size:2rem; }.player-status { flex-wrap:wrap; } }
+@media(prefers-reduced-motion:reduce) { *, *::before, *::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }

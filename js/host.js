@@ -3,6 +3,8 @@ import { loadQuiz, sampleQuiz } from "./store.js";
 import { auth, authReady } from "./auth.js";
 import qrcode from "https://cdn.jsdelivr.net/npm/qrcode-generator@2.0.4/dist/qrcode.mjs";
 
+import { rankHtml, podium, updateClock } from "./game-effects.js";
+
 const $ = id => document.getElementById(id);
 const show = name => ["lobby", "question", "reveal", "end"].forEach(s => $(s).hidden = s !== name);
 const quizId = new URLSearchParams(location.search).get("quiz") || "sample";
@@ -10,7 +12,7 @@ let quiz;
 let pin = "", game = {}, qIndex = -1, timer = null, revealing = false;
 const players = () => Object.entries(game.players || {}).map(([id, player]) => ({ id, ...player }));
 const ranking = () => players().sort((a, b) => b.score - a.score);
-const rankHtml = list => list.map(p => `<li><span>${esc(p.name)}</span><b>${p.score || 0}점</b></li>`).join("");
+
 
 async function createRoom() {
   if (quizId === "sample") quiz = sampleQuiz();
@@ -55,6 +57,8 @@ async function goQuestion(i) {
   qIndex = i;
   revealing = false;
   const item = quiz.questions[i];
+  $("question-progress").value = i + 1;
+  $("question-progress").max = quiz.questions.length;
   $("q-num").textContent = `QUESTION ${i + 1} / ${quiz.questions.length}`;
   $("q-text").textContent = item.q;
   $("q-image").hidden = !item.image;
@@ -64,13 +68,15 @@ async function goQuestion(i) {
   $("answer-count").textContent = `0 / ${players().length}명 응답`;
   show("question");
   await update(at(`games/${pin}`), { state: "question", q: i, current: { q: item.q, options: item.options, time: item.time, type: item.type, image: item.image || "" }, qStart: serverTimestamp(), reveal: null });
-  let left = item.time;
-  $("timer").textContent = left;
+  const started = (await get(at(`games/${pin}/qStart`))).val();
+  const tick = () => {
+    const left = started + item.time * 1000 - Date.now();
+    updateClock($("timer"), left, item.time);
+    if (left <= 0) reveal().catch(report);
+  };
   clearInterval(timer);
-  timer = setInterval(() => {
-    $("timer").textContent = Math.max(--left, 0);
-    if (left <= 0) reveal();
-  }, 1000);
+  tick();
+  timer = setInterval(tick, 100);
 }
 async function reveal() {
   if (revealing) return;
@@ -103,6 +109,7 @@ async function reveal() {
 async function finish() {
   await update(at(`games/${pin}`), { state: "end" });
   $("final-rank").innerHTML = rankHtml(ranking());
+  podium($("podium"), ranking());
   show("end");
 }
 function report(error) { console.error(error); $("game-error").textContent = "연결에 문제가 생겼어요. 인터넷과 Firebase 설정을 확인해 주세요."; }
