@@ -61,7 +61,7 @@ export function createHandler({ verify, reserve, generate }) {
       catch { return reply({ error: "요청 형식을 확인해 주세요." }, 400); }
       if (!body || typeof body !== "object" || Array.isArray(body) || Object.keys(body).some(k => !["source", "count", "type"].includes(k))) return reply({ error: "요청 형식을 확인해 주세요." }, 400);
       const source = typeof body.source === "string" ? body.source.trim() : "";
-      if (source.length < 30 || source.length > MAX_SOURCE) return reply({ error: "원고는 30~15,000자로 입력해 주세요." }, 400);
+      if (!source || source.length > MAX_SOURCE) return reply({ error: "원고나 퀴즈 주제를 입력해 주세요. (최대 15,000자)" }, 400);
       if (!Number.isInteger(body.count) || body.count < 1 || body.count > 20 || !["ox", "choice", "mixed"].includes(body.type)) return reply({ error: "문제 수와 유형을 확인해 주세요." }, 400);
       const quota = await reserve(uid);
       if (!quota.allowed) return reply({ error: quota.reason === "interval" ? "10초 뒤 다시 시도해 주세요." : "오늘 퀴즈 AI 생성 한도에 도달했어요." }, 429);
