@@ -29,16 +29,23 @@ export function updateClock(element, leftMs, limitSec) {
 
 let audio;
 let muted = localStorage.getItem("quiz-play-muted") !== "false";
+const enableAudio = () => {
+  if (muted) return;
+  audio ||= new (window.AudioContext || window.webkitAudioContext)();
+  audio.resume();
+};
+document.addEventListener("pointerdown", enableAudio, { once: true });
+document.addEventListener("keydown", enableAudio, { once: true });
 const button = document.createElement("button");
 button.type = "button";
-button.className = "theme-toggle";
+button.className = "sound-toggle";
 const sync = () => { button.textContent = muted ? "🔇" : "🔊"; button.setAttribute("aria-label", muted ? "축하 효과음 켜기" : "축하 효과음 끄기"); button.setAttribute("aria-pressed", String(!muted)); };
 sync();
 document.querySelector(".game-top .top-right, .game-top")?.append(button);
 button.onclick = () => {
   muted = !muted;
   localStorage.setItem("quiz-play-muted", String(muted));
-  if (!muted) { audio ||= new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); }
+  enableAudio();
   sync();
 };
 export function celebrate() {
