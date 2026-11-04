@@ -6,12 +6,19 @@ export const rankHtml = players => {
   return ranked.map(p => `<li value="${p.rank}"><span>${["", "🥇", "🥈", "🥉"][p.rank] || ""} ${ranked.filter(other => other.rank === p.rank).length > 1 ? "공동 " : ""}${p.rank}위 ${esc(p.name)}</span><b>${p.score || 0}점</b></li>`).join("");
 };
 
+const podiumScenes = new WeakMap();
 export function podium(container, players) {
+  podiumScenes.get(container)?.dispose?.();
+  const scene = {};
+  podiumScenes.set(container, scene);
   const ranked = rankPlayers(players);
   container.innerHTML = ranked.filter(p => p.rank <= 3).map(p => `<article class="podium-place place-${p.rank}"><span aria-label="${p.rank}위">${["", "🥇", "🥈", "🥉"][p.rank]}</span><strong>${esc(p.name)}</strong><b>${p.score || 0}점</b><small>${ranked.filter(other => other.rank === p.rank).length > 1 ? "공동 " : ""}${p.rank}위</small></article>`).join("");
   container.classList.remove("celebrating");
   requestAnimationFrame(() => container.classList.add("celebrating"));
   celebrate();
+  if (ranked.length) import("./podium-3d.js").then(({ showPodium }) => {
+    if (podiumScenes.get(container) === scene) scene.dispose = showPodium(container, ranked, () => podium(container, players));
+  }).catch(error => console.warn("3D 시상대를 표시하지 못해 기본 결과를 사용합니다.", error));
 }
 
 export function updateClock(element, leftMs, limitSec) {
