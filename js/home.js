@@ -6,6 +6,7 @@ const account = document.getElementById("account-btn");
 const status = document.getElementById("account-status");
 let request = 0;
 async function render(user) {
+  if(user?.isAnonymous) user=null;
   const current = ++request;
   list.innerHTML = Array.from({ length: 3 }, () => "<div class='quiz-skeleton' aria-hidden='true'><div class='skeleton-cover'></div><div class='skeleton-body'><div class='skeleton-line short'></div><div class='skeleton-line'></div><div class='skeleton-line medium'></div></div></div>").join("") + "<span class='sr-only' role='status'>퀴즈를 불러오는 중이에요.</span>";
   let quizzes = [];
@@ -19,7 +20,7 @@ async function render(user) {
   const cards = [sampleQuiz(), ...quizzes];
   list.innerHTML = cards.map(quiz => {
     const theme = themes.find(item => item.id === quiz.theme) || themes[0];
-    return `<article class="quiz-card"><div class="quiz-cover theme-${esc(theme.id)}"><span>✦ QUIZ PLAY</span><strong>${quiz.questions.length}<small> QUESTIONS</small></strong><i>✳</i></div><div class="quiz-card-body"><span class="card-tag">${quiz.id === "sample" ? "기본 퀴즈" : "내 퀴즈"}</span><h3>${esc(quiz.title)}</h3><p>${esc(quiz.description || "나만의 퀴즈를 플레이해 보세요.")}</p><div class="card-actions"><a class="play-link" href="host.html?quiz=${encodeURIComponent(quiz.id)}">게임 시작 →</a>${quiz.id === "sample" ? "" : `<a href="editor.html?id=${encodeURIComponent(quiz.id)}">수정</a><button data-delete="${esc(quiz.id)}">삭제</button>`}</div></div></article>`;
+    return `<article class="quiz-card"><div class="quiz-cover theme-${esc(theme.id)}"><span>✦ QUIZ PLAY</span><strong>${quiz.questions.length}<small> QUESTIONS</small></strong><i>✳</i></div><div class="quiz-card-body"><span class="card-tag">${quiz.id === "sample" ? "기본 퀴즈" : "내 퀴즈"}</span><h3>${esc(quiz.title)}</h3><p>${esc(quiz.description || "나만의 퀴즈를 플레이해 보세요.")}</p><div class="card-actions"><a class="play-link" href="host.html?quiz=${encodeURIComponent(quiz.id)}">게임 시작 →</a><a href="host.html?quiz=${encodeURIComponent(quiz.id)}&mode=self">자율 학습</a>${quiz.id === "sample" ? "" : `<a href="editor.html?id=${encodeURIComponent(quiz.id)}">수정</a><button data-delete="${esc(quiz.id)}">삭제</button>`}</div></div></article>`;
   }).join("") + (user ? "" : "<p class='library-message'>Google 로그인 후 내 퀴즈를 저장하고 불러올 수 있어요.</p>");
 }
 list.addEventListener("click", async event => {
@@ -29,10 +30,11 @@ list.addEventListener("click", async event => {
   catch (error) { console.error(error); status.textContent = "삭제하지 못했어요. 다시 시도해 주세요."; }
 });
 account.onclick = async () => {
-  try { if (auth.currentUser) await logout(); else await login(); }
+  try { if (auth.currentUser && !auth.currentUser.isAnonymous) await logout(); else await login(); }
   catch (error) { console.error(error); status.textContent = "로그인하지 못했어요. 팝업 허용과 Firebase 설정을 확인해 주세요."; }
 };
 watchAuth(user => {
+  if(user?.isAnonymous) user=null;
   account.textContent = user ? "로그아웃" : "Google 로그인";
   status.textContent = user ? `${user.displayName || user.email}님으로 로그인` : "";
   render(user);
