@@ -17,10 +17,10 @@ test("로그인과 허용 출처를 확인한다", async () => {
 test("입력이 유효할 때만 사용량을 예약한다", async () => {
   let reservations = 0;
   const run = handler({ reserve: async () => { reservations++; return { allowed: true }; } });
-  assert.equal((await run(request({ ...valid, source: "짧음" }))).status, 400);
+  assert.equal((await run(request({ ...valid, source: "" }))).status, 400);
   assert.equal((await run(request({ ...valid, count: 21 }))).status, 400);
   assert.equal(reservations, 0);
-  const result = await run(request(valid));
+  const result = await run(request({ ...valid, source: "성경인물" }));
   assert.equal(result.status, 200);
   assert.deepEqual((await result.json()).questions, [{ ...question, time: 20 }]);
   assert.equal(reservations, 1);
@@ -39,4 +39,28 @@ test("유형·보기·정답이 잘못된 AI 결과는 표시하지 않는다", 
     { ...question, type: "choice", options: ["1", "2", "3", "4"] },
   ];
   for (const item of cases) assert.equal((await handler({ generate: async () => [item] })(request(valid))).status, 502);
+});
+
+test("AI가 정답을 모두 1번에 배치해도 객관식 정답 위치를 골고루 바꾼다", async () => {
+  const generated = Array.from({ length: 12 }, (_, index) => ({
+    type: "choice",
+    q: `성경 인물 문제 ${index + 1}`,
+    options: [`정답 ${index}`, `오답 A ${index}`, `오답 B ${index}`, `오답 C ${index}`],
+    answer: 0,
+    exp: `해설 ${index}`
+  }));
+  const originalOptions = generated.map(item => [...item.options]);
+  const run = handler({ generate: async () => generated });
+  const result = await run(request({ source, count: 12, type: "choice" }));
+  assert.equal(result.status, 200);
+  const { questions } = await result.json();
+  assert.equal(questions.length, 12);
+  const positionCounts = [0, 0, 0, 0];
+  questions.forEach((item, index) => {
+    positionCounts[item.answer]++;
+    assert.equal(item.options[item.answer], `정답 ${index}`);
+    assert.deepEqual([...item.options].sort(), originalOptions[index].sort());
+    assert.equal(item.exp, `해설 ${index}`);
+  });
+  assert.deepEqual(positionCounts, [3, 3, 3, 3]);
 });

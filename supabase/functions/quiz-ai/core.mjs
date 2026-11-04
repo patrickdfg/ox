@@ -1,6 +1,33 @@
 const ALLOWED_ORIGIN = "https://patrickdfg.github.io";
 const MAX_SOURCE = 15000;
 
+// 객관식 정답의 위치를 고르게 분산하되 정답 내용과 해설은 유지합니다.
+export function distributeChoiceAnswers(questions) {
+  const targets = questions.filter(question => question.type === "choice")
+    .map((_, index) => index % 4);
+  const shuffle = values => {
+    for (let i = values.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [values[i], values[j]] = [values[j], values[i]];
+    }
+  };
+  shuffle(targets);
+  let choiceIndex = 0;
+  for (const question of questions) {
+    if (question.type !== "choice") continue;
+    const choices = question.options.map((text, index) => ({
+      text, correct: index === question.answer
+    }));
+    shuffle(choices);
+    const target = targets[choiceIndex++];
+    const current = choices.findIndex(choice => choice.correct);
+    [choices[current], choices[target]] = [choices[target], choices[current]];
+    question.options = choices.map(choice => choice.text);
+    question.answer = target;
+  }
+  return questions;
+}
+
 export function createHandler({ verify, reserve, generate }) {
   return async request => {
     const origin = request.headers.get("origin");
@@ -34,7 +61,7 @@ export function createHandler({ verify, reserve, generate }) {
       catch { return reply({ error: "요청 형식을 확인해 주세요." }, 400); }
       if (!body || typeof body !== "object" || Array.isArray(body) || Object.keys(body).some(k => !["source", "count", "type"].includes(k))) return reply({ error: "요청 형식을 확인해 주세요." }, 400);
       const source = typeof body.source === "string" ? body.source.trim() : "";
-      if (source.length < 30 || source.length > MAX_SOURCE) return reply({ error: "원고는 30~15,000자로 입력해 주세요." }, 400);
+      if (!source || source.length > MAX_SOURCE) return reply({ error: "원고나 퀴즈 주제를 입력해 주세요. (최대 15,000자)" }, 400);
       if (!Number.isInteger(body.count) || body.count < 1 || body.count > 20 || !["ox", "choice", "mixed"].includes(body.type)) return reply({ error: "문제 수와 유형을 확인해 주세요." }, 400);
       const quota = await reserve(uid);
       if (!quota.allowed) return reply({ error: quota.reason === "interval" ? "10초 뒤 다시 시도해 주세요." : "오늘 퀴즈 AI 생성 한도에 도달했어요." }, 429);
@@ -47,7 +74,7 @@ export function createHandler({ verify, reserve, generate }) {
         if (!Number.isInteger(item.answer) || item.answer < 0 || item.answer >= options.length) throw new Error("invalid");
         return { type: item.type, q: item.q.trim(), options, answer: item.answer, exp: item.exp.trim(), time: 20 };
       });
-      return reply({ questions });
+      return reply({ questions: distributeChoiceAnswers(questions) });
     } catch {
       return reply({ error: "문제를 만들지 못했어요. 잠시 후 다시 시도해 주세요." }, 502);
     }
