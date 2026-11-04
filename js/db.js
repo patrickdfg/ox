@@ -8,6 +8,9 @@ const db = getDatabase(app);
 
 export const at = (path) => ref(db, path);
 export { set, update, get, remove, onValue, serverTimestamp };
+let serverOffset = 0;
+onValue(ref(db, ".info/serverTimeOffset"), snapshot => { serverOffset = snapshot.val() || 0; });
+export const now = () => Date.now() + serverOffset;
 
 export { calcPoints } from "./game-math.mjs";
 

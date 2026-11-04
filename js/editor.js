@@ -157,7 +157,7 @@ watchAuth(async user => {
   ownerUid = "";
   $("editor-layout").hidden = true;
   $("editor-auth").hidden = false;
-  if (!user) return;
+  if (!user || user.isAnonymous) return;
   $("auth-message").textContent = "내 퀴즈를 불러오는 중이에요.";
   try {
     const loaded = id ? await loadQuiz(user.uid, id) : null;
