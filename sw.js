@@ -1,5 +1,5 @@
 // 퀴즈 플레이의 정적 화면을 오프라인에서도 열 수 있도록 저장합니다.
-const CACHE = "quiz-play-pwa-20261105-podium3d";
+const CACHE = "quiz-play-pwa-20261105-podium3d-reveal";
 const FILES = ["./", "./index.html", "./editor.html", "./host.html", "./play.html",
  "./style.css", "./style.css?v=20261104-contrast", "./classroom.html", "./js/classroom.js", "./js/race.js", "./reports.html", "./js/session.js", "./js/reports.mjs", "./js/report-page.js", "./manifest.json", "./assets/favicon.svg", "./assets/icon-192.png",
  "./assets/icon-512.png", "./assets/cosmic.jpg", "./js/ui.js", "./js/home.js",

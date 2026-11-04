@@ -99,7 +99,7 @@ export function showPodium(container, groups, replay) {
   const blue = new THREE.PointLight(0x67d9ff, 70, 30); blue.position.set(6, 5, -2); scene.add(blue);
   const actors = [];
   for (const rank of [3, 2, 1]) {
-    const group = new THREE.Group(), height = heights[rank]; group.position.x = positions[rank];
+    const group = new THREE.Group(), height = heights[rank]; group.position.x = positions[rank]; group.visible = reduced;
     const base = new THREE.MeshStandardMaterial({ color: colors[rank], roughness: 0.32, metalness: 0.55 });
     group.add(mesh(new THREE.CylinderGeometry(0.9, 1.03, height, 8), base, 0, height / 2, 0));
     group.add(mesh(new THREE.CylinderGeometry(0.96, 0.96, 0.13, 8), new THREE.MeshStandardMaterial({ color: 0xfff7da, metalness: 0.35, roughness: 0.28 }), 0, height + 0.02, 0));
@@ -153,6 +153,7 @@ export function showPodium(container, groups, replay) {
     const time = (now - start) / 1000;
     for (const actor of actors) {
       const progress = reduced ? 1 : Math.max(0, Math.min(1, (time - delays[actor.rank]) / .8));
+      actor.group.visible = progress > 0;
       const eased = 1 - Math.pow(1 - progress, 3);
       actor.group.position.y = -3.2 * (1 - eased);
       if (actor.character && progress === 1 && !reduced) {
