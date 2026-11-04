@@ -1,10 +1,10 @@
 // 퀴즈 플레이의 정적 화면을 오프라인에서도 열 수 있도록 저장합니다.
-const CACHE = "quiz-play-pwa-20261104-contrast";
+const CACHE = "quiz-play-pwa-20261104-stage1";
 const FILES = ["./", "./index.html", "./editor.html", "./host.html", "./play.html",
  "./style.css", "./style.css?v=20261104-contrast", "./manifest.json", "./assets/favicon.svg", "./assets/icon-192.png",
  "./assets/icon-512.png", "./assets/cosmic.jpg", "./js/ui.js", "./js/home.js",
  "./js/editor.js", "./js/host.js", "./js/play.js", "./js/store.js", "./js/auth.js",
- "./js/db.js", "./js/config.js", "./js/questions.js", "./js/manuscript.js"];
+ "./js/game-math.mjs", "./js/game-effects.js", "./js/db.js", "./js/config.js", "./js/questions.js", "./js/manuscript.js"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES)).then(() => self.skipWaiting()));
 });
