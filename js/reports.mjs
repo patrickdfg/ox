@@ -11,7 +11,7 @@ export function buildReport(quiz, game) {
       rows.push({ uid, name: player.name, q: q + 1, question: question.q, selected: answer && answer.a >= 0 ? question.options[answer.a] : "미응답", answer: question.options[question.answer], correct, elapsedMs: elapsed, points: correct ? calcPoints(true, elapsed, question.time) : 0, exp: question.exp || "" });
     });
   }
-  return { title: quiz.title, mode: game.mode || "live", createdAt: game.createdAt, rows };
+  return { classCode: game.classCode || null, assignmentId: game.assignmentId || null, title: quiz.title, mode: game.mode || "live", createdAt: game.createdAt, rows };
 }
 
 export function summarize(rows, field) {

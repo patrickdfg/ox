@@ -8,7 +8,7 @@ before(async()=> {
  env=await initializeTestEnvironment({projectId:'demo-quiz-play',database:{host:'127.0.0.1',port:9000,rules:await readFile(new URL('../database.rules.json',import.meta.url),'utf8')}});
  await env.withSecurityRulesDisabled(async context=>set(ref(context.database()),{
   sessions:{'123456':{owner:'teacher',mode:'live',state:'question',q:0,qStart:Date.now(),createdAt:Date.now(),current:{time:120,options:['O','X']},players:{student:{name:'학생',score:0,last:0}}},
-  '234567':{owner:'teacher',mode:'self',state:'question',total:2,questions:[{q:'첫 문제',time:120,options:['O','X']},{q:'두 번째',time:120,options:['O','X']}],players:{student:{name:'학생',score:0,last:0}}}},
+  '234567':{owner:'teacher',mode:'self',state:'question',createdAt:Date.now(),total:2,questions:[{q:'첫 문제',time:120,options:['O','X']},{q:'두 번째',time:120,options:['O','X']}],players:{student:{name:'학생',score:0,last:0}}}},
   sessionKeys:{'234567':{owner:'teacher',questions:[{answer:0,text:'O',exp:'해설'},{answer:1,text:'X',exp:'해설'}]}},
   quizzes:{teacher:{private:{title:'비공개'}}},reports:{teacher:{private:{title:'비공개'}}}
  }));

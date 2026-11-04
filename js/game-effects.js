@@ -1,10 +1,14 @@
 import { rankPlayers } from "./game-math.mjs";
 
 const esc = value => String(value).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-export const rankHtml = players => rankPlayers(players).map(p => `<li value="${p.rank}"><span>${["", "🥇", "🥈", "🥉"][p.rank] || `${p.rank}위`} ${esc(p.name)}</span><b>${p.score || 0}점</b></li>`).join("");
+export const rankHtml = players => {
+  const ranked = rankPlayers(players);
+  return ranked.map(p => `<li value="${p.rank}"><span>${["", "🥇", "🥈", "🥉"][p.rank] || ""} ${ranked.filter(other => other.rank === p.rank).length > 1 ? "공동 " : ""}${p.rank}위 ${esc(p.name)}</span><b>${p.score || 0}점</b></li>`).join("");
+};
 
 export function podium(container, players) {
-  container.innerHTML = rankPlayers(players).filter(p => p.rank <= 3).map(p => `<article class="podium-place place-${p.rank}"><span aria-label="${p.rank}위">${["", "🥇", "🥈", "🥉"][p.rank]}</span><strong>${esc(p.name)}</strong><b>${p.score || 0}점</b><small>공동 순위 적용 · ${p.rank}위</small></article>`).join("");
+  const ranked = rankPlayers(players);
+  container.innerHTML = ranked.filter(p => p.rank <= 3).map(p => `<article class="podium-place place-${p.rank}"><span aria-label="${p.rank}위">${["", "🥇", "🥈", "🥉"][p.rank]}</span><strong>${esc(p.name)}</strong><b>${p.score || 0}점</b><small>${ranked.filter(other => other.rank === p.rank).length > 1 ? "공동 " : ""}${p.rank}위</small></article>`).join("");
   container.classList.remove("celebrating");
   requestAnimationFrame(() => container.classList.add("celebrating"));
   celebrate();

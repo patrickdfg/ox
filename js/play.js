@@ -1,4 +1,5 @@
 import { at, set, get, onValue, serverTimestamp, now, calcPoints, esc } from "./db.js";
+import { renderRace } from "./race.js";
 import { participant, findSession, startPersonalQuestion } from "./session.js";
 import { podium, updateClock } from "./game-effects.js";
 const $ = id => document.getElementById(id);
@@ -39,7 +40,7 @@ function displayQuestion(item,index,total,started,onTimeout) {
   clearInterval(timer);show("question");timer=setInterval(tick,100);tick();
 }
 async function render(game) {
-  currentGame=game;
+  currentGame=game;renderRace($("race-panel"),game);
   if(!game.state) {clearInterval(timer);show("join");$("join-msg").textContent="삭제된 방이에요.";return;}
   if(["cosmic","sunset","ocean"].includes(game.theme)) document.body.className=`game theme-${game.theme}`;
   if(game.mode==="self") return renderPersonal(game);
