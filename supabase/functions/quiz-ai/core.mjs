@@ -1,6 +1,33 @@
 const ALLOWED_ORIGIN = "https://patrickdfg.github.io";
 const MAX_SOURCE = 15000;
 
+// 객관식 정답의 위치를 고르게 분산하되 정답 내용과 해설은 유지합니다.
+export function distributeChoiceAnswers(questions) {
+  const targets = questions.filter(question => question.type === "choice")
+    .map((_, index) => index % 4);
+  const shuffle = values => {
+    for (let i = values.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [values[i], values[j]] = [values[j], values[i]];
+    }
+  };
+  shuffle(targets);
+  let choiceIndex = 0;
+  for (const question of questions) {
+    if (question.type !== "choice") continue;
+    const choices = question.options.map((text, index) => ({
+      text, correct: index === question.answer
+    }));
+    shuffle(choices);
+    const target = targets[choiceIndex++];
+    const current = choices.findIndex(choice => choice.correct);
+    [choices[current], choices[target]] = [choices[target], choices[current]];
+    question.options = choices.map(choice => choice.text);
+    question.answer = target;
+  }
+  return questions;
+}
+
 export function createHandler({ verify, reserve, generate }) {
   return async request => {
     const origin = request.headers.get("origin");
@@ -47,7 +74,7 @@ export function createHandler({ verify, reserve, generate }) {
         if (!Number.isInteger(item.answer) || item.answer < 0 || item.answer >= options.length) throw new Error("invalid");
         return { type: item.type, q: item.q.trim(), options, answer: item.answer, exp: item.exp.trim(), time: 20 };
       });
-      return reply({ questions });
+      return reply({ questions: distributeChoiceAnswers(questions) });
     } catch {
       return reply({ error: "문제를 만들지 못했어요. 잠시 후 다시 시도해 주세요." }, 502);
     }
