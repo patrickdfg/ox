@@ -1,7 +1,7 @@
 import { rankPlayers } from "./game-math.mjs";
 const esc = value => String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 export function renderRace(container, game) {
-  container.hidden=game.mode!=="battle"||game.state==="lobby";
+  container.hidden=(game.mode!=="battle"&&game.visual!=="race")||game.state==="lobby";
   if(container.hidden) return;
   const players=rankPlayers(Object.entries(game.players||{}).map(([id,p])=>({id,...p})));
   const maximum=game.total*1000;

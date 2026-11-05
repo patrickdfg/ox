@@ -24,6 +24,8 @@ async function render(user) {
   }).join("") + (user ? "" : "<p class='library-message'>Google 로그인 후 내 퀴즈를 저장하고 불러올 수 있어요.</p>");
 }
 list.addEventListener("click", async event => {
+  const study=event.target.closest('a[href*="mode=self"]');
+  if(study){const url=new URL(study.href);url.searchParams.set('feedback',document.getElementById('study-feedback').value);url.searchParams.set('visual',document.getElementById('study-visual').value);study.href=url.href;}
   const id = event.target.dataset.delete, user = auth.currentUser;
   if (!id || !user || !confirm("이 퀴즈를 삭제할까요?")) return;
   try { await deleteQuiz(user.uid, id); if (auth.currentUser?.uid === user.uid) render(user); }

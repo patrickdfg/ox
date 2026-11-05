@@ -1,10 +1,12 @@
 import { at, set, get, onValue, serverTimestamp, now, calcPoints, esc } from "./db.js";
+import {grade} from './grading.js';
 import { renderRace } from "./race.js";
 import { participant, findSession, startPersonalQuestion } from "./session.js";
-import { podium, updateClock } from "./game-effects.js";
+import { podium, updateClock,correctSound } from "./game-effects.js";
 const $ = id => document.getElementById(id);
 const show = name => ["solo-loading", "join", "wait", "question", "sent", "result", "end"].forEach(s => $(s).hidden = s !== name);
 let pin="",pid="",room="",lastKey="",timer=null,currentGame=null,stop=null,personalQ=0,busy=false;
+let personalScore=0;
 const params = new URLSearchParams(location.search);
 const directSolo = params.get("solo") === "1";
 if(directSolo) show("solo-loading");
@@ -43,7 +45,7 @@ function displayQuestion(item,index,total,started,onTimeout) {
   clearInterval(timer);show("question");timer=setInterval(tick,100);tick();
 }
 async function render(game) {
-  currentGame=game;renderRace($("race-panel"),game);
+  currentGame=game;renderRace($("race-panel"),game.mode==='self'?{...game,players:{[pid]:{...game.players?.[pid],score:personalScore}}}:game);
   if(!game.state) {clearInterval(timer);if(directSolo){show("solo-loading");$("solo-loading-message").textContent="학습이 종료되었어요. 처음부터 다시 시작해 주세요.";}else{show("join");$("join-msg").textContent="삭제된 방이에요.";}return;}
   if(["cosmic","sunset","ocean"].includes(game.theme)) document.body.className=`game theme-${game.theme}`;
   if(game.mode==="self") return renderPersonal(game);
@@ -56,6 +58,7 @@ async function render(game) {
     displayQuestion(game.current,game.q,game.total,game.qStart);return;
   }
   if(game.state==="reveal") {
+    if(me?.last>0)correctSound();
     $("result-title").textContent=me?.last>0?"정답이에요! 🎉":"아쉬워요, 다음 문제!";
     $("result-points").textContent=`+${me?.last||0}점`;$("result-answer").textContent=`정답: ${game.reveal?.text||""}`;
     $("result-exp").textContent=game.reveal?.exp||"";$("result-total").textContent=`총점 ${me?.score||0}점 · ${rankOf(game)}등`;return show("result");
@@ -71,23 +74,18 @@ async function renderPersonal(game) {
   const key=`self-${game.state}-${index}`;if(key===lastKey) return;
   lastKey=key;clearInterval(timer);
   if(game.state==="end"||index===questions.length) {
-    const rows=await personalRows(game);$("end-rank").textContent="학습 완료";$("end-score").textContent=`${rows.reduce((sum,r)=>sum+r.points,0)}점`;
+    const rows=await personalRows(game);personalScore=rows.reduce((sum,r)=>sum+r.points,0);renderRace($("race-panel"),{...game,players:{[pid]:{...game.players?.[pid],score:personalScore}}});$("end-rank").textContent="학습 완료";$("end-score").textContent=`${personalScore}점`;
     $("personal-review").innerHTML=rows.filter(r=>!r.correct).map(r=>`<article class="glass-panel"><h3>${esc(r.q)}</h3><p>정답: ${esc(r.text)}</p><p>${esc(r.exp)}</p></article>`).join("")||"오답이 없어요!";
     show("end");return;
   }
   const started=await startPersonalQuestion(pin,pid,index);
   if(currentGame?.state==="end"||personalQ!==index) return;
+  if(index&&game.visual==='race'&&game.feedback!=='end'&&!personalScore){const rows=await personalRows(game);personalScore=rows.reduce((sum,r)=>sum+r.points,0);renderRace($('race-panel'),{...game,players:{[pid]:{...game.players?.[pid],score:personalScore}}});}
   $("player-rank").textContent="자율 학습";
   displayQuestion(questions[index],index,questions.length,started,()=>submit(-1).catch(report));
 }
 async function personalRows(game) {
-  const rows=[];
-  for(let i=0;i<(game.questions||[]).length;i++) {
-    const response=game.answers?.[i]?.[pid];if(!response) continue;
-    const key=(await get(at(`sessionKeys/${pin}/questions/${i}`))).val();
-    const elapsed=Math.max(0,response.t-game.starts[pid][i].t),correct=response.a===key.answer&&elapsed<=game.questions[i].time*1000;
-    rows.push({...key,q:game.questions[i].q,correct,points:correct?calcPoints(true,elapsed,game.questions[i].time):0});
-  }return rows;
+  return (await grade(pin,'personal')).rows;
 }
 async function submit(answer) {
   if(busy||!currentGame||currentGame.state!=="question") return;
@@ -98,11 +96,14 @@ async function submit(answer) {
   try {
     await set(at(`${room}/answers/${q}/${pid}`),{a:answer,t:serverTimestamp()});clearInterval(timer);
     if(personal) {
-      const key=(await get(at(`sessionKeys/${pin}/questions/${q}`))).val();
-      const game=(await get(at(room))).val(),response=game.answers[q][pid],elapsed=Math.max(0,response.t-game.starts[pid][q].t);
-      const ok=answer===key.answer&&elapsed<=game.questions[q].time*1000;
+      if(currentGame.feedback==='end') {
+        $('result-title').textContent='답을 제출했어요';$('result-points').textContent=`${q+1} / ${currentGame.total}`;$('result-answer').textContent='모든 문제를 풀면 정답과 해설을 확인해요.';$('result-exp').textContent='';$('result-total').textContent='';$('personal-next').hidden=false;show('result');return;
+      }
+      const graded=(await grade(pin,'personal',q)).rows,key=graded.find(row=>row.index===q),ok=key.correct;
+      if(ok)correctSound();
+      if(currentGame.visual==='race'){personalScore=graded.reduce((sum,r)=>sum+r.points,0);renderRace($('race-panel'),{...currentGame,players:{[pid]:{...currentGame.players?.[pid],score:personalScore}}});}
       $("result-title").textContent=ok?"정답이에요! 🎉":"정답과 해설을 확인해요";
-      $("result-points").textContent=`+${ok?calcPoints(true,elapsed,game.questions[q].time):0}점`;$("result-answer").textContent=`정답: ${key.text}`;$("result-exp").textContent=key.exp;$("result-total").textContent=`${q+1} / ${game.total}문제 완료`;
+      $("result-points").textContent=`+${key.points}점`;$("result-answer").textContent=`정답: ${key.text}`;$("result-exp").textContent=key.exp;$("result-total").textContent=`${q+1} / ${currentGame.total}문제 완료`;
       $("personal-next").hidden=false;show("result");
     } else if(currentGame.state==="question") show("sent");
   } catch(error) {lastKey="";report(error);document.querySelectorAll("[data-answer]").forEach(b=>b.disabled=false);}

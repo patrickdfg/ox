@@ -9,7 +9,7 @@ export const rankHtml = players => {
 const podiumScenes = new WeakMap();
 export function podium(container, players) {
   podiumScenes.get(container)?.dispose?.();
-  const scene = {};
+  const scene = {players};
   podiumScenes.set(container, scene);
   const ranked = rankPlayers(players);
   container.innerHTML = ranked.filter(p => p.rank <= 3).map(p => `<article class="podium-place place-${p.rank}"><span aria-label="${p.rank}위">${["", "🥇", "🥈", "🥉"][p.rank]}</span><strong>${esc(p.name)}</strong><b>${p.score || 0}점</b><small>${ranked.filter(other => other.rank === p.rank).length > 1 ? "공동 " : ""}${p.rank}위</small></article>`).join("");
@@ -55,6 +55,15 @@ button.onclick = () => {
   enableAudio();
   sync();
 };
+const motion=document.createElement('button');motion.type='button';motion.className='motion-toggle';
+const systemMotion=matchMedia('(prefers-reduced-motion: reduce)');
+const syncMotion=()=>{const on=localStorage.getItem('quiz-play-reduced-motion')==='true'||systemMotion.matches;document.documentElement.classList.toggle('reduce-motion',on);motion.textContent=on?'동작 줄이기 켜짐':'동작 줄이기 꺼짐';motion.setAttribute('aria-pressed',String(on));motion.disabled=systemMotion.matches;};
+motion.onclick=()=>{localStorage.setItem('quiz-play-reduced-motion',String(localStorage.getItem('quiz-play-reduced-motion')!=='true'));syncMotion();for(const c of document.querySelectorAll('.podium')){const s=podiumScenes.get(c);if(s)podium(c,s.players);}};
+systemMotion.addEventListener('change',syncMotion);syncMotion();document.querySelector('.game-top')?.append(motion);
+export function correctSound(){
+ if(muted||!audio)return;
+ [659.25,880].forEach((frequency,i)=>{const o=audio.createOscillator(),g=audio.createGain(),t=audio.currentTime+i*.1;o.frequency.value=frequency;g.gain.setValueAtTime(.05,t);g.gain.exponentialRampToValueAtTime(.001,t+.2);o.connect(g).connect(audio.destination);o.start(t);o.stop(t+.21);});
+}
 export function celebrate() {
   if (muted || !audio) return;
   [523.25, 659.25, 783.99, 1046.5].forEach((frequency, i) => {

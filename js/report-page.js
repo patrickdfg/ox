@@ -1,3 +1,5 @@
+import {grade} from './grading.js';
+import {saveQuiz} from './store.js';
 import { at, get, remove, esc } from "./db.js";
 import { auth, watchAuth, login, logout } from "./auth.js";
 import { buildReport, summarize, reportCsv } from "./reports.mjs";
@@ -28,13 +30,16 @@ $("report-list").onclick=async event=> {
       event.target.closest("article").remove(); $("report-detail").hidden=true; return;
     }
     selected=reports[id];
-    if(selected.mode==="self") {
+    {
       const game=(await get(at(`sessions/${id}`))).val();
-      if(game) selected=buildReport(selected.quiz,game);
+      if(game) selected=(await grade(id)).report;
     }
     $("report-title").textContent=selected.title;
     $("student-stats").innerHTML=table(summarize(selected.rows||[],"uid"));
     $("question-stats").innerHTML=table(summarize(selected.rows||[],"q"));
+    if(selected.summary)$('report-overview').textContent=`${selected.summary.participants}명 참가 · 평균 ${Math.round(selected.summary.average)}점 · 평균 정답률 ${Math.round(selected.summary.accuracy*100)}%`;
+    $('option-stats').innerHTML=(selected.distributions||[]).map((d,i)=>`<article class="glass-panel"><h4>${i+1}. ${esc(d.question)}</h4>${d.options.map((o,j)=>`<p>${esc(o)} · ${d.counts[j]}명</p>`).join('')}</article>`).join('');
+    $('create-review').hidden=user.isAnonymous||!selected.quiz;
     $("review-student").innerHTML='<option value="">모든 학생</option>'+summarize(selected.rows||[],"uid").map(r=>`<option value="${esc(r.key)}">${esc(r.name)}</option>`).join("");
     review(); $("report-detail").hidden=false;
   } catch(error) {reportError(error);}
@@ -45,6 +50,9 @@ function review() {
   $("wrong-review").innerHTML=rows.map(r=>`<article class="glass-panel"><h4>${esc(r.name)} · ${r.q}. ${esc(r.question)}</h4><p>내 답: ${esc(r.selected)} / 정답: ${esc(r.answer)}</p><p>${esc(r.exp)}</p></article>`).join("")||"오답이 없어요!";
 }
 $("review-student").onchange=review;
+$('create-review').onclick=async()=>{
+ try{const uid=$('review-student').value,indices=new Set((selected.rows||[]).filter(r=>!r.correct&&(!uid||r.uid===uid)).map(r=>r.q-1)),questions=selected.quiz.questions.filter((_,i)=>indices.has(i));if(!questions.length){$('report-status').textContent='복습할 오답 문제가 없어요.';return;}const id=crypto.randomUUID();await saveQuiz(auth.currentUser.uid,{...selected.quiz,id,title:`${selected.title} · 오답 복습`,questions});location.href=`editor.html?id=${id}`;}catch(error){reportError(error);}
+};
 $("csv").onclick=()=> {
   const url=URL.createObjectURL(new Blob([reportCsv(selected)],{type:"text/csv;charset=utf-8"}));
   const a=document.createElement("a"); a.href=url; a.download="quiz-report.csv"; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000);
