@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>슬라이드 복습 · 퀴즈 플레이</title>
+  <meta name="theme-color" content="#251452">
+  <link rel="stylesheet" href="slide.css">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+</head>
+<body class="slide-page">
+  <header class="slide-toolbar">
+    <a class="slide-brand" href="index.html">✦ QUIZ PLAY</a>
+    <span id="slide-title" class="slide-title">퀴즈 복습</span>
+    <div class="slide-tools">
+      <button id="fullscreen" type="button">⛶ 전체화면</button>
+      <a href="index.html">닫기 ✕</a>
+    </div>
+  </header>
+  <section id="slide-access" class="slide-access" role="status">
+    <p id="slide-message">퀴즈를 불러오는 중입니다.</p>
+    <button type="button" id="slide-login" hidden>Google 로그인</button>
+    <a href="index.html">퀴즈 목록으로</a>
+  </section>
+  <main id="slide-layout" class="slide-layout" hidden>
+    <div id="slide-stage" class="slide-stage" tabindex="0" role="button" aria-label="정답 공개 또는 다음 문제로 넘기기"></div>
+    <nav class="slide-controls" aria-label="슬라이드 조작">
+      <button id="slide-prev" type="button">← 이전</button>
+      <span id="slide-step" aria-live="polite"></span>
+      <button id="slide-next" class="slide-next" type="button">정답 공개 →</button>
+    </nav>
+    <p class="slide-hint">화면을 클릭하거나 →·스페이스 키로 넘기세요. ← 키는 이전 단계입니다.</p>
+  </main>
+  <script type="module" src="js/slides.js"></script>
+</body>
+</html>
