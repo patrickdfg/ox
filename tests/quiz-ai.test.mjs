@@ -14,23 +14,21 @@ test("로그인과 허용 출처를 확인한다", async () => {
   assert.equal((await handler()(request(valid, { headers: { origin: "https://other.example", authorization: "Bearer valid" } }))).status, 403);
   assert.equal((await handler()(request(valid, { headers: { origin, authorization: "Bearer invalid" } }))).status, 401);
 });
-test("입력이 유효할 때만 사용량을 예약한다", async () => {
-  let reservations = 0;
-  const run = handler({ reserve: async () => { reservations++; return { allowed: true }; } });
+test("입력을 검증하고 자체 사용량 제한 없이 생성한다", async () => {
+  let generated = 0;
+  const run = handler({ generate: async () => { generated++; return [question]; }, reserve: async () => { throw new Error("legacy quota must not run"); } });
   assert.equal((await run(request({ ...valid, source: "" }))).status, 400);
   assert.equal((await run(request({ ...valid, count: 21 }))).status, 400);
-  assert.equal(reservations, 0);
-  const result = await run(request({ ...valid, source: "성경인물" }));
-  assert.equal(result.status, 200);
-  assert.deepEqual((await result.json()).questions, [{ ...question, time: 20 }]);
-  assert.equal(reservations, 1);
+  for (let i = 0; i < 12; i++) assert.equal((await run(request({ ...valid, source: "초등학교 상식 퀴즈 내줘" }))).status, 200);
+  assert.equal(generated, 12);
 });
-test("호출 제한은 AI 호출 전에 적용된다", async () => {
-  let generated = 0;
-  const run = handler({ reserve: async () => ({ allowed: false, reason: "daily" }), generate: async () => { generated++; return [question]; } });
-  assert.equal((await run(request(valid))).status, 429);
-  assert.equal(generated, 0);
+test("Gemini 한도와 일시 장애를 구분한다", async () => {
+  for (const status of [429, 503]) {
+    const run = handler({ generate: async () => { throw { providerStatus: status }; } });
+    assert.equal((await run(request(valid))).status, status);
+  }
 });
+
 test("유형·보기·정답이 잘못된 AI 결과는 표시하지 않는다", async () => {
   const cases = [
     { ...question, options: ["X", "O"] },

@@ -28,7 +28,7 @@ export function distributeChoiceAnswers(questions) {
   return questions;
 }
 
-export function createHandler({ verify, reserve, generate }) {
+export function createHandler({ verify, generate }) {
   return async request => {
     const origin = request.headers.get("origin");
     const headers = { "Content-Type": "application/json", "Cache-Control": "no-store", "Vary": "Origin" };
@@ -63,8 +63,6 @@ export function createHandler({ verify, reserve, generate }) {
       const source = typeof body.source === "string" ? body.source.trim() : "";
       if (!source || source.length > MAX_SOURCE) return reply({ error: "원고나 퀴즈 주제를 입력해 주세요. (최대 15,000자)" }, 400);
       if (!Number.isInteger(body.count) || body.count < 1 || body.count > 20 || !["ox", "choice", "mixed"].includes(body.type)) return reply({ error: "문제 수와 유형을 확인해 주세요." }, 400);
-      const quota = await reserve(uid);
-      if (!quota.allowed) return reply({ error: quota.reason === "interval" ? "10초 뒤 다시 시도해 주세요." : "오늘 퀴즈 AI 생성 한도에 도달했어요." }, 429);
       const items = await generate(source, body.count, body.type);
       if (!Array.isArray(items) || items.length !== body.count) throw new Error("invalid");
       const questions = items.map(item => {
@@ -75,7 +73,9 @@ export function createHandler({ verify, reserve, generate }) {
         return { type: item.type, q: item.q.trim(), options, answer: item.answer, exp: item.exp.trim(), time: 20 };
       });
       return reply({ questions: distributeChoiceAnswers(questions) });
-    } catch {
+    } catch (error) {
+      if (error?.providerStatus === 429) return reply({ error: "Gemini API 사용 한도에 도달했어요. Gemini 사용량과 결제 설정을 확인해 주세요." }, 429);
+      if ([500, 502, 503, 504].includes(error?.providerStatus)) return reply({ error: "Gemini 서버가 일시적으로 응답하지 않아요. 자동 재시도 후에도 실패했으니 잠시 뒤 다시 시도해 주세요." }, 503);
       return reply({ error: "문제를 만들지 못했어요. 잠시 후 다시 시도해 주세요." }, 502);
     }
   };
