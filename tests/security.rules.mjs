@@ -14,6 +14,14 @@ before(async()=> {
  }));
 });
 after(async()=>env?.cleanup());
+
+test('완료 후 정답 공개는 마지막 문항 제출 전 키 읽기를 차단한다',async()=>{
+ await env.withSecurityRulesDisabled(async context=>set(ref(context.database(),'sessions/567890'),{owner:'teacher',mode:'self',feedback:'end',state:'question',total:2,createdAt:Date.now(),questions:[{q:'첫',time:120,options:['O','X']},{q:'둘',time:120,options:['O','X']}],players:{student:{name:'학생',score:0,last:0}},answers:{0:{student:{a:0,t:Date.now()}}}}));
+ await env.withSecurityRulesDisabled(async context=>set(ref(context.database(),'sessionKeys/567890'),{owner:'teacher',questions:[{answer:0,text:'O'},{answer:1,text:'X'}]}));
+ await assertFails(get(ref(db('student'),'sessionKeys/567890/questions/0')));
+ await env.withSecurityRulesDisabled(async context=>set(ref(context.database(),'sessions/567890/answers/1/student'),{a:1,t:Date.now()}));
+ await assertSucceeds(get(ref(db('student'),'sessionKeys/567890/questions/0')));
+});
 test('미인증·다른 계정은 퀴즈·리포트를 읽거나 쓸 수 없다',async()=>{
  await assertFails(get(ref(db('student'),'quizzes/teacher')));
  await assertFails(get(ref(db('student'),'reports/teacher')));

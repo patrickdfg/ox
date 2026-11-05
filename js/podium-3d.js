@@ -109,7 +109,7 @@ export function showPodium(container, groups, replay) {
   const caption = document.createElement("div"); caption.className = "podium-captions";
   const replayButton = document.createElement("button"); replayButton.type = "button"; replayButton.className = "podium-replay"; replayButton.textContent = "✦ 축하 다시 보기"; replayButton.onclick = replay;
   sceneArea.append(bursts); shell.append(sceneArea, caption, replayButton);
-  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches || localStorage.getItem('quiz-play-reduced-motion')==='true';
   shell.classList.toggle("reduced-motion", reduced);
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "low-power" });
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));

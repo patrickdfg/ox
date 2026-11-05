@@ -2,3 +2,5 @@ node_modules/
 .serena/
 *-debug.log
 .firebase/
+test-results/
+playwright-report/

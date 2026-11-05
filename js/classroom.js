@@ -1,3 +1,4 @@
+import {grade} from './grading.js';
 import { at, get, set, update, remove, serverTimestamp, esc } from "./db.js";
 import { auth, watchAuth, login, logout } from "./auth.js";
 import { participant, saveKeys } from "./session.js";
@@ -71,10 +72,12 @@ async function openClass(id) {
   for(const [,a]of assignments) {
     const saved=(await get(at(`reports/${user.uid}/${a.pin}`))).val();
     const game=(await get(at(`sessions/${a.pin}`))).val();
-    if(saved&&game)rows.push(...buildReport(saved.quiz,game).rows);
+    if(saved&&game)rows.push(...(await grade(a.pin)).report.rows);
   }
   if(code!==id)return;
   $("class-history").innerHTML=`<table><thead><tr><th>학생</th><th>누적 정답률</th><th>평균 응답 시간</th><th>누적 점수</th></tr></thead><tbody>${summarize(rows,'uid').map(r=>`<tr><th scope="row">${esc(r.name)}</th><td>${r.correct}/${r.total} (${r.accuracy}%)</td><td>${r.meanMs===null?'미응답':(r.meanMs/1000).toFixed(2)+'초'}</td><td>${r.score}</td></tr>`).join('')}</tbody></table>`;
+  const students=summarize(rows,'uid'),groups=new Map();for(const r of rows){const g=groups.get(r.question)||{correct:0,total:0};g.total++;g.correct+=r.correct?1:0;groups.set(r.question,g);}
+  $('class-history').insertAdjacentHTML('afterbegin',`<p>참가 ${students.length}명 · 평균 누적 점수 ${students.length?Math.round(students.reduce((n,r)=>n+r.score,0)/students.length):0}점 · 전체 정답률 ${rows.length?Math.round(100*rows.filter(r=>r.correct).length/rows.length):0}%</p><h4>함께 복습할 문제</h4>${[...groups].filter(([,g])=>g.correct/g.total<.5).map(([q,g])=>`<p>${esc(q)} · 정답률 ${Math.round(100*g.correct/g.total)}%</p>`).join('')||'<p>정답률 50% 미만 문제가 없어요.</p>'}`);
 }
 $("assign-quiz").onsubmit=async event=>{
   event.preventDefault();const user=auth.currentUser;if(!user||current?.owner!==user.uid)return;
@@ -82,7 +85,7 @@ $("assign-quiz").onsubmit=async event=>{
   const target=code,assignmentId=crypto.randomUUID();
   try {
     let pin;do{pin=String(100000+crypto.getRandomValues(new Uint32Array(1))[0]%900000);}while((await get(at(`sessions/${pin}`))).exists());
-    const game={owner:user.uid,mode:'self',classCode:target,assignmentId,state:'question',q:-1,title:quiz.title,theme:quiz.theme,total:quiz.questions.length,createdAt:serverTimestamp(),questions:quiz.questions.map(({answer,exp,...q})=>q)};
+    const game={owner:user.uid,mode:'self',feedback:$('assignment-feedback').value,visual:$('assignment-visual').value,classCode:target,assignmentId,state:'question',q:-1,title:quiz.title,theme:quiz.theme,total:quiz.questions.length,createdAt:serverTimestamp(),questions:quiz.questions.map(({answer,exp,...q})=>q)};
     await set(at(`sessions/${pin}`),game);await saveKeys(pin,quiz,user.uid);
     const saved=(await get(at(`sessions/${pin}`))).val();
     await set(at(`reports/${user.uid}/${pin}`),{...buildReport(quiz,saved),quiz});
@@ -107,7 +110,7 @@ $("class-members").onclick=async event=>{
       for(const q of Object.keys(game.answers||{})) changes[`answers/${q}/${uid}`]=null;
       await update(at(`sessions/${a.pin}`),changes);
       const saved=(await get(at(`reports/${auth.currentUser.uid}/${a.pin}`))).val();
-      if(saved)await set(at(`reports/${auth.currentUser.uid}/${a.pin}`),{...buildReport(saved.quiz,(await get(at(`sessions/${a.pin}`))).val()),quiz:saved.quiz});
+      if(saved)await grade(a.pin);
     }
     await remove(at(`classes/${code}/members/${uid}`));await openClass(code);
   }catch(error){fail(error);}
