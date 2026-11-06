@@ -47,7 +47,7 @@ function displayQuestion(item,index,total,started,onTimeout) {
 async function render(game) {
   currentGame=game;renderRace($("race-panel"),game.mode==='self'?{...game,players:{[pid]:{...game.players?.[pid],score:personalScore}}}:game);
   if(!game.state) {clearInterval(timer);if(directSolo){show("solo-loading");$("solo-loading-message").textContent="학습이 종료되었어요. 처음부터 다시 시작해 주세요.";}else{show("join");$("join-msg").textContent="삭제된 방이에요.";}return;}
-  if(["cosmic","sunset","ocean"].includes(game.theme)) document.body.className=`game theme-${game.theme}`;
+  if(["cosmic","sunset","ocean","forest","neon","volcano"].includes(game.theme)) document.body.className=`game theme-${game.theme}`;
   if(game.mode==="self") return renderPersonal(game);
   const key=`${game.state}-${game.q}`;$("player-rank").textContent=`🏆 ${rankOf(game)}위`;
   if(key===lastKey) return;lastKey=key;clearInterval(timer);
