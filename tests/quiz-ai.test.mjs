@@ -62,3 +62,19 @@ test("AI가 정답을 모두 1번에 배치해도 객관식 정답 위치를 골
   });
   assert.deepEqual(positionCounts, [3, 3, 3, 3]);
 });
+
+test("1차 모델이 막히거나 형식이 틀리면 대체 모델로 다시 만든다", async () => {
+  for (const failure of [() => { throw { providerStatus: 429 }; }, () => { throw { providerStatus: 503 }; }, () => { throw new Error("timeout"); }, () => [{ ...question, answer: 5 }]]) {
+    const used = [];
+    const run = handler({ models: ["main", "backup"], generate: async (_s, _c, _t, model) => { used.push(model); return model === "main" ? failure() : [question]; } });
+    const result = await run(request(valid));
+    assert.equal(result.status, 200);
+    assert.deepEqual(used, ["main", "backup"]);
+  }
+});
+test("두 모델이 모두 실패하면 마지막 오류로 안내한다", async () => {
+  const run = handler({ models: ["main", "backup"], generate: async (_s, _c, _t, model) => { throw { providerStatus: model === "main" ? 503 : 429 }; } });
+  const result = await run(request(valid));
+  assert.equal(result.status, 429);
+  assert.match((await result.json()).error, /대체 모델/);
+});
