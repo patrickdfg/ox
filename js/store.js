@@ -5,6 +5,9 @@ export const themes = [
   { id: "cosmic", name: "코스믹 파티", detail: "반짝이는 우주" },
   { id: "sunset", name: "캔디 선셋", detail: "달콤한 노을빛" },
   { id: "ocean", name: "오션 어드벤처", detail: "시원한 바닷속" },
+  { id: "forest", name: "포레스트 캠프", detail: "싱그러운 숲속" },
+  { id: "neon", name: "네온 아케이드", detail: "빛나는 게임장" },
+  { id: "volcano", name: "볼케이노 런", detail: "뜨거운 화산" },
 ];
 export async function loadQuizzes(uid) {
   const snapshot = await get(at(`quizzes/${uid}`));
