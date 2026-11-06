@@ -8,6 +8,7 @@ import { renderRace } from "./race.js";
 import { participant, saveKeys } from "./session.js";
 import { buildReport } from "./reports.mjs";
 import { rankHtml, podium, updateClock } from "./game-effects.js";
+import { mergeByName } from "./game-math.mjs";
 
 const $ = id => document.getElementById(id);
 const show = name => ["solo-preparing", "lobby", "question", "reveal", "end"].forEach(s => $(s).hidden = s !== name);
@@ -17,7 +18,7 @@ const directSelf = mode === "self" && new URLSearchParams(location.search).get("
 const settings=new URLSearchParams(location.search),feedback=settings.get('feedback')==='end'?'end':'each',visual=settings.get('visual')==='race'||mode==='battle'?'race':'classic';
 let quiz, owner;
 let pin = "", game = {}, qIndex = -1, timer = null, revealing = false;
-const players = () => Object.entries(game.players || {}).map(([id, player]) => ({ id, ...player }));
+const players = () => mergeByName(Object.entries(game.players || {}).map(([id, player]) => ({ id, ...player })));
 const ranking = () => players().sort((a, b) => b.score - a.score);
 
 
@@ -81,10 +82,11 @@ async function createRoom() {
     renderRace($("race-panel"),game);
     const list = players();
     $("player-count").textContent = list.length;
-    $("player-list").innerHTML = list.map(p => `<li>${esc(p.name)}</li>`).join("");
+    $("player-list").innerHTML = $("manage-list").innerHTML = list.map(p => `<li>${esc(p.name)}<button type="button" class="player-remove" data-remove="${esc(p.ids.join(","))}" aria-label="${esc(p.name)} 참가 목록에서 빼기">×</button></li>`).join("");
+    $("manage-count").textContent = list.length;
     $("start-btn").disabled = mode !== "self" && list.length === 0;
     if (mode !== "self" && game.state === "question") {
-      const answered = Object.keys(game.answers?.[qIndex] || {}).length;
+      const answered = list.filter(p => p.ids.some(id => game.answers?.[qIndex]?.[id])).length;
       $("answer-count").textContent = `${answered} / ${list.length}명 응답`;
       if (list.length && answered >= list.length) reveal().catch(report);
     }
@@ -135,7 +137,7 @@ async function reveal() {
   try {result=await grade(pin,'reveal');}
   catch(error){revealing=false;throw error;}
   const item=quiz.questions[qIndex],counts=result.counts;
-  const scored=Object.values(result.players);
+  const scored=mergeByName(Object.entries(result.players).map(([id,p])=>({id,...p})));
   $("r-answer").textContent = item.options[item.answer];
   $("answer-stats").innerHTML = item.options.map((option, i) => `<div class="answer-tile color-${i} ${i === item.answer ? "correct" : ""}"><span>${esc(option)}</span><b>${counts[i]}명</b></div>`).join("");
   $("r-exp").textContent = item.exp || "";
@@ -148,7 +150,7 @@ async function finish() {
   await persist();
   if(mode === "self") {
     const final = (await get(at(`reports/${owner}/${pin}`))).val();
-    const list=players().map(p=>({...p,score:(final.rows||[]).filter(row=>row.uid===p.id).reduce((sum,row)=>sum+row.points,0)}));
+    const list=players().map(p=>({...p,score:(final.rows||[]).filter(row=>p.ids.includes(row.uid)).reduce((sum,row)=>sum+row.points,0)}));
     $("final-rank").innerHTML=rankHtml(list); podium($("podium"),list); show("end"); return;
   }
   $("final-rank").innerHTML = rankHtml(ranking());
@@ -158,6 +160,15 @@ async function finish() {
 function report(error) { console.error(error); $("game-error").textContent = "연결에 문제가 생겼어요. 인터넷과 Firebase 설정을 확인해 주세요."; }
 $("start-btn").onclick = () => (mode === "self" ? finish() : goQuestion(0)).catch(report);
 $("skip-btn").onclick = () => reveal().catch(report);
+// 다른 기기로 다시 들어와 남은 참가자를 진행자가 직접 뺍니다.
+const removePlayer = event => {
+  const button = event.target.closest("[data-remove]");
+  if (!button) return;
+  const name = button.parentElement.firstChild.textContent;
+  if (!confirm(`${name} 님을 참가 목록에서 뺄까요?`)) return;
+  update(at(`sessions/${pin}`), Object.fromEntries(button.dataset.remove.split(",").map(id => [`players/${id}`, null]))).catch(report);
+};
+$("player-list").onclick = $("manage-list").onclick = removePlayer;
 $("next-btn").onclick = () => (qIndex + 1 < quiz.questions.length ? goQuestion(qIndex + 1) : finish()).catch(report);
 createRoom().catch(error => {
   if (directSelf) { console.error(error); show("solo-preparing"); $("solo-preparing-message").textContent = "학습을 시작하지 못했어요. 인터넷 연결을 확인한 뒤 다시 시도해 주세요."; return; }
