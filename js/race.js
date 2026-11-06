@@ -1,9 +1,9 @@
-import { rankPlayers } from "./game-math.mjs";
+import { rankPlayers, mergeByName } from "./game-math.mjs";
 const esc = value => String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 export function renderRace(container, game) {
   container.hidden=(game.mode!=="battle"&&game.visual!=="race")||game.state==="lobby";
   if(container.hidden) return;
-  const players=rankPlayers(Object.entries(game.players||{}).map(([id,p])=>({id,...p})));
+  const players=rankPlayers(mergeByName(Object.entries(game.players||{}).map(([id,p])=>({id,...p}))));
   const maximum=game.total*1000;
   const signature=JSON.stringify(players.map(p=>[p.id,p.score,p.name]));
   if(container.dataset.race===signature) return;container.dataset.race=signature;

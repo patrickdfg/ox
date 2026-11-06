@@ -2,9 +2,11 @@ import { at, get, set, serverTimestamp } from "./db.js";
 import { auth, authReady } from "./auth.js";
 import { signInAnonymously } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
 
+// 입장 버튼을 여러 번 눌러도 익명 계정이 하나만 만들어지도록 진행 중인 로그인을 함께 기다립니다.
+let signingIn = null;
 export async function participant() {
   await authReady;
-  if (!auth.currentUser) await signInAnonymously(auth);
+  if (!auth.currentUser) await (signingIn ||= signInAnonymously(auth).finally(() => { signingIn = null; }));
   return auth.currentUser;
 }
 export const sessionPath = pin => `sessions/${pin}`;

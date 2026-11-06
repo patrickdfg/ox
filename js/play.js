@@ -3,9 +3,10 @@ import {grade} from './grading.js';
 import { renderRace } from "./race.js";
 import { participant, findSession, startPersonalQuestion } from "./session.js";
 import { podium, updateClock,correctSound } from "./game-effects.js";
+import { mergeByName } from "./game-math.mjs";
 const $ = id => document.getElementById(id);
 const show = name => ["solo-loading", "join", "wait", "question", "sent", "result", "end"].forEach(s => $(s).hidden = s !== name);
-let pin="",pid="",room="",lastKey="",timer=null,currentGame=null,stop=null,personalQ=0,busy=false;
+let pin="",pid="",room="",lastKey="",timer=null,currentGame=null,stop=null,personalQ=0,busy=false,joining=false;
 let personalScore=0;
 const params = new URLSearchParams(location.search);
 const directSolo = params.get("solo") === "1";
@@ -17,6 +18,8 @@ $("join-form").onsubmit=async event=> {
   $("join-msg").textContent="";
   if(!/^\d{6}$/.test(inputPin)) return $("join-msg").textContent="PIN 6자리 숫자를 입력하세요.";
   if(!name) return $("join-msg").textContent="닉네임을 입력하세요.";
+  if(joining) return;
+  joining=true;$("join-form").querySelector("button").disabled=true;
   try {
     const user=await participant(), found=await findSession(inputPin);
     if(!found) throw new Error("방을 찾을 수 없어요. PIN을 확인하세요.");
@@ -29,9 +32,12 @@ $("join-form").onsubmit=async event=> {
     $("me").textContent=found.game.players?.[pid]?.name||name;
     stop?.();lastKey="";stop=onValue(at(room),snapshot=>{render(snapshot.val()||{}).catch(report);},report);
   } catch(error) { if(directSolo) { console.error(error); $("solo-loading-message").textContent="학습을 시작하지 못했어요. 인터넷 연결과 로그인 상태를 확인해 주세요."; } else $("join-msg").textContent=error.message; }
+  finally { joining=false;$("join-form").querySelector("button").disabled=false; }
 };
 function report(error) {console.error(error);$("answer-message").textContent="연결을 확인한 뒤 다시 시도해 주세요.";}
-function rankOf(game) {const mine=game.players?.[pid]?.score||0;return Object.values(game.players||{}).filter(p=>p.score>mine).length+1;}
+const merged=game=>mergeByName(Object.entries(game.players||{}).map(([id,p])=>({id,...p})));
+const myScore=game=>merged(game).find(p=>p.ids.includes(pid))?.score||0;
+function rankOf(game) {const mine=myScore(game);return merged(game).filter(p=>p.score>mine).length+1;}
 function displayQuestion(item,index,total,started,onTimeout) {
   $("question-progress").value=index+1;$("question-progress").max=total;
   $("pq-num").textContent=`QUESTION ${index+1} / ${total}`;$("pq-text").textContent=item.q;$("pq-image").hidden=!item.image;
@@ -49,6 +55,7 @@ async function render(game) {
   if(!game.state) {clearInterval(timer);if(directSolo){show("solo-loading");$("solo-loading-message").textContent="학습이 종료되었어요. 처음부터 다시 시작해 주세요.";}else{show("join");$("join-msg").textContent="삭제된 방이에요.";}return;}
   if(["cosmic","sunset","ocean","forest","neon","volcano"].includes(game.theme)) document.body.className=`game theme-${game.theme}`;
   if(game.mode==="self") return renderPersonal(game);
+  if(lastKey&&!game.players?.[pid]) {clearInterval(timer);lastKey="";stop?.();stop=null;show("join");$("join-msg").textContent="진행자가 참가 목록에서 뺐어요. 다시 입장하려면 입장하기를 누르세요.";return;}
   const key=`${game.state}-${game.q}`;$("player-rank").textContent=`🏆 ${rankOf(game)}위`;
   if(key===lastKey) return;lastKey=key;clearInterval(timer);
   const me=game.players?.[pid];$("personal-next").hidden=true;
@@ -61,10 +68,10 @@ async function render(game) {
     if(me?.last>0)correctSound();
     $("result-title").textContent=me?.last>0?"정답이에요! 🎉":"아쉬워요, 다음 문제!";
     $("result-points").textContent=`+${me?.last||0}점`;$("result-answer").textContent=`정답: ${game.reveal?.text||""}`;
-    $("result-exp").textContent=game.reveal?.exp||"";$("result-total").textContent=`총점 ${me?.score||0}점 · ${rankOf(game)}등`;return show("result");
+    $("result-exp").textContent=game.reveal?.exp||"";$("result-total").textContent=`총점 ${myScore(game)}점 · ${rankOf(game)}등`;return show("result");
   }
   if(game.state==="end") {
-    podium($("podium"),Object.values(game.players||{}));$("end-rank").textContent=`${rankOf(game)}등`;$("end-score").textContent=`${me?.score||0}점`;return show("end");
+    podium($("podium"),merged(game));$("end-rank").textContent=`${rankOf(game)}등`;$("end-score").textContent=`${myScore(game)}점`;return show("end");
   }
 }
 async function renderPersonal(game) {
