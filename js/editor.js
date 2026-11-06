@@ -1,6 +1,7 @@
 import { loadQuiz, saveQuiz, themes, escapeHtml as esc } from "./store.js";
 import { auth, watchAuth, login } from "./auth.js";
 import { readManuscript } from "./manuscript.js";
+import { buildPastePrompt, parsePastedQuestions } from "./ai-paste.mjs";
 
 const $ = id => document.getElementById(id);
 const id = new URLSearchParams(location.search).get("id");
@@ -143,10 +144,29 @@ $("ai-generate").onclick = async () => {
     $("ai-message").textContent = `${result.questions.length}개 문제를 추가했어요. 정답과 해설을 확인한 뒤 저장해 주세요.`;
     $("questions").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
-    $("ai-message").textContent = error.message || "연결에 실패했어요. 다시 시도해 주세요.";
+    $("ai-message").textContent = (error.message || "연결에 실패했어요. 다시 시도해 주세요.") + " 급하면 아래 '다른 AI로 만들기'를 이용해 주세요.";
+    $("ai-paste-box").open = true;
   } finally {
     $("ai-generate").disabled = false;
   }
+};
+$("ai-copy-prompt").onclick = async () => {
+  const source = $("ai-source").value.trim();
+  if (!source) { $("ai-paste-message").textContent = "먼저 위 칸에 원고나 퀴즈 주제를 입력해 주세요."; return; }
+  try {
+    await navigator.clipboard.writeText(buildPastePrompt(source, Number($("ai-count").value), $("ai-type").value));
+    $("ai-paste-message").textContent = "프롬프트를 복사했어요. 다른 AI에 붙여 넣어 주세요.";
+  } catch { $("ai-paste-message").textContent = "이 브라우저에서는 복사가 막혀 있어요. 크롬이나 사파리에서 다시 시도해 주세요."; }
+};
+$("ai-paste-add").onclick = () => {
+  try {
+    const questions = parsePastedQuestions($("ai-paste").value);
+    quiz.questions.push(...questions);
+    renderQuestions();
+    $("ai-paste").value = "";
+    $("ai-paste-message").textContent = `${questions.length}개 문제를 추가했어요. 정답과 해설을 확인한 뒤 저장해 주세요.`;
+    $("questions").scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (error) { $("ai-paste-message").textContent = error.message; }
 };
 $("editor-login").onclick = async () => {
   try { await login(); }
