@@ -2,7 +2,7 @@ import {grade} from './grading.js';
 import { at, get, set, update, remove, serverTimestamp, esc } from "./db.js";
 import { auth, watchAuth, login, logout } from "./auth.js";
 import { participant, saveKeys } from "./session.js";
-import { loadQuizzes, sampleQuiz } from "./store.js";
+import { loadQuizzes, sampleQuizzes } from "./store.js";
 import { buildReport, summarize } from "./reports.mjs";
 const $=id=>document.getElementById(id);
 let code="",quizzes=[],current=null,request=0;
@@ -15,7 +15,7 @@ watchAuth(async user=>{
   $("create-button").disabled=!teacher(user);
   if(!teacher(user)) return;
   try {
-    quizzes=[sampleQuiz(),...await loadQuizzes(user.uid)];
+    quizzes=[...sampleQuizzes(),...await loadQuizzes(user.uid)];
     const owned=(await get(at(`teacherClasses/${user.uid}`))).val()||{};
     const cards=[];
     for(const id of Object.keys(owned)) {

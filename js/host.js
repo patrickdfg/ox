@@ -1,5 +1,5 @@
 import { at, set, update, get, onValue, serverTimestamp, now, calcPoints, esc } from "./db.js";
-import { loadQuiz, sampleQuiz } from "./store.js";
+import { loadQuiz, findSample } from "./store.js";
 import { auth, authReady } from "./auth.js";
 import qrcode from "https://cdn.jsdelivr.net/npm/qrcode-generator@2.0.4/dist/qrcode.mjs";
 
@@ -25,8 +25,8 @@ const ranking = () => players().sort((a, b) => b.score - a.score);
 async function createRoom() {
   if (directSelf) show("solo-preparing");
   owner = (await participant()).uid;
-  if (quizId === "sample") quiz = sampleQuiz();
-  else {
+  quiz = findSample(quizId);
+  if (!quiz) {
     await authReady;
     if (auth.currentUser) quiz = await loadQuiz(auth.currentUser.uid, quizId);
   }
