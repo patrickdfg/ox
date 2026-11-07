@@ -1,5 +1,5 @@
 // 저장된 퀴즈를 수업 복습용 프레젠테이션으로 표시하고 클릭마다 정답과 다음 문제를 전환합니다.
-import { loadQuiz, sampleQuiz, escapeHtml as esc } from "./store.js";
+import { loadQuiz, findSample, escapeHtml as esc } from "./store.js";
 import { auth, watchAuth, login } from "./auth.js";
 import { advanceSlide, retreatSlide } from "./slide-state.mjs";
 
@@ -98,7 +98,7 @@ document.addEventListener("keydown", event => {
   }
 });
 
-if (quizId === "sample") openQuiz(sampleQuiz());
+if (findSample(quizId)) openQuiz(findSample(quizId));
 else watchAuth(async user => {
   const call = ++request;
   quiz = null;
