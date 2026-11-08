@@ -4,6 +4,7 @@ import { renderRace } from "./race.js";
 import { participant, findSession, startPersonalQuestion } from "./session.js";
 import { podium, updateClock,correctSound } from "./game-effects.js";
 import { mergeByName } from "./game-math.mjs";
+import { fitTiles } from "./fit-text.js";
 const $ = id => document.getElementById(id);
 const show = name => ["solo-loading", "join", "wait", "question", "sent", "result", "end"].forEach(s => $(s).hidden = s !== name);
 let pin="",pid="",room="",lastKey="",timer=null,currentGame=null,stop=null,personalQ=0,busy=false,joining=false;
@@ -49,6 +50,9 @@ function displayQuestion(item,index,total,started,onTimeout) {
     if(left<=0) {document.querySelectorAll("[data-answer]").forEach(b=>b.disabled=true);clearInterval(timer);onTimeout?.();}
   };
   clearInterval(timer);show("question");timer=setInterval(tick,100);tick();
+  // 긴 보기는 글자를 줄이고, 그래도 화면보다 길면 보기 버튼이 보이도록 아래로 내립니다.
+  fitTiles($("player-options"),0.6);
+  if(document.documentElement.scrollHeight>innerHeight+8) $("player-options").scrollIntoView({block:"end",behavior:"smooth"});
 }
 async function render(game) {
   currentGame=game;renderRace($("race-panel"),game.mode==='self'?{...game,players:{[pid]:{...game.players?.[pid],score:personalScore}}}:game);
