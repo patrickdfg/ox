@@ -9,8 +9,10 @@ import { participant, saveKeys } from "./session.js";
 import { buildReport } from "./reports.mjs";
 import { rankHtml, podium, updateClock } from "./game-effects.js";
 import { mergeByName } from "./game-math.mjs";
+import { fitTiles, fitLines } from "./fit-text.js";
 
 const $ = id => document.getElementById(id);
+addEventListener("resize", () => { fitTiles($("host-options")); fitLines($("r-answer")); fitTiles($("answer-stats")); });
 const show = name => ["solo-preparing", "lobby", "question", "reveal", "end"].forEach(s => $(s).hidden = s !== name);
 const quizId = new URLSearchParams(location.search).get("quiz") || "sample";
 const mode = ["self","battle"].includes(new URLSearchParams(location.search).get("mode")) ? new URLSearchParams(location.search).get("mode") : "live";
@@ -118,6 +120,7 @@ async function goQuestion(i, resume = false) {
   $("host-options").innerHTML = item.options.map((option, j) => `<div class="answer-tile color-${j}"><span>${["◆", "●", "▲", "■"][j]}</span>${esc(option)}</div>`).join("");
   $("answer-count").textContent = `0 / ${players().length}명 응답`;
   show("question");
+  fitTiles($("host-options"));
   if(!resume) await update(at(`sessions/${pin}`), { [`questionStarts/${i}`]: serverTimestamp(), state: "question", q: i, current: { q: item.q, options: item.options, time: item.time, type: item.type, image: item.image || "" }, qStart: serverTimestamp(), reveal: null });
   const started = (await get(at(`sessions/${pin}/qStart`))).val();
   const tick = () => {
@@ -144,6 +147,8 @@ async function reveal() {
   $("top5").innerHTML = rankHtml(scored.sort((a, b) => b.score - a.score).slice(0, 5));
   $("next-btn").textContent = qIndex + 1 < quiz.questions.length ? "다음 문제 →" : "최종 결과 보기 🏆";
   show("reveal");
+  fitLines($("r-answer"));
+  fitTiles($("answer-stats"));
 }
 async function finish() {
   await update(at(`sessions/${pin}`), { state: "end" });
