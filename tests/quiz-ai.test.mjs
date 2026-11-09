@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createHandler } from "../supabase/functions/quiz-ai/core.mjs";
+import { buildPrompt, createHandler } from "../supabase/functions/quiz-ai/core.mjs";
 
 const origin = "https://patrickdfg.github.io";
 const source = "컴퓨터는 정보를 0과 1로 표현합니다. 이진수는 두 개의 숫자를 사용합니다.";
@@ -22,6 +22,25 @@ test("입력을 검증하고 자체 사용량 제한 없이 생성한다", async
   for (let i = 0; i < 12; i++) assert.equal((await run(request({ ...valid, source: "초등학교 상식 퀴즈 내줘" }))).status, 200);
   assert.equal(generated, 12);
 });
+test("난이도 4단계의 지시문을 적용하고 생략 시 어려움을 기본값으로 사용한다", async () => {
+  const guides = { easy: "기본 사실", normal: "핵심 개념", hard: "단순 암기보다", expert: "여러 핵심 개념의 연결" };
+  for (const [level, phrase] of Object.entries(guides)) {
+    const prompt = buildPrompt(source, 1, "choice", level);
+    assert.match(prompt, new RegExp(phrase));
+    assert.match(prompt, /객관식 오답 보기 품질/);
+    assert.match(prompt, /그럴듯/);
+  }
+  assert.match(buildPrompt(source, 1, "choice"), /단순 암기보다/);
+  const received = [];
+  const run = handler({ generate: async (_source, _count, _type, _model, difficulty) => { received.push(difficulty); return [question]; } });
+  assert.equal((await run(request(valid))).status, 200);
+  assert.equal((await run(request({ ...valid, difficulty: "expert" }))).status, 200);
+  assert.deepEqual(received, ["hard", "expert"]);
+  for (const difficulty of ["medium", "", null, 10]) {
+    assert.equal((await run(request({ ...valid, difficulty }))).status, 400);
+  }
+});
+
 test("Gemini 한도와 일시 장애를 구분한다", async () => {
   for (const status of [429, 503]) {
     const run = handler({ generate: async () => { throw { providerStatus: status }; } });
