@@ -41,6 +41,20 @@ test("난이도 4단계의 지시문을 적용하고 생략 시 어려움을 기
   }
 });
 
+test("신앙 고난도 문제는 단순한 긍정·부정 대비와 비현실적인 오답을 피하도록 지시한다", () => {
+  const manuscript = "주의 주관권을 벗어나면 사망과 사탄과 악의 주관권 아래에서 고통받는다고 설명한다.";
+  for (const level of ["hard", "expert"]) {
+    const prompt = buildPrompt(manuscript, 5, "choice", level);
+    assert.match(prompt, /정답이 부정적인 결과라면 오답도 모두 부정적인 결과/);
+    assert.match(prompt, /원고에서 구별한 주관 관계·상태·조건·원인·순서·결과/);
+    assert.match(prompt, /긍정·부정 또는 비현실적인 보기만 제거해 풀 수 있는가/);
+    assert.match(prompt, /원고에 없는 교리나 타 종파의 주장을 오답에 끼워 넣지 마세요/);
+    assert.match(prompt, /원고 안에서 구별 가능한 내용/);
+    assert.match(prompt, /사망과 사탄과 악의 주관권/);
+  }
+  assert.match(buildPrompt(manuscript, 5, "choice", "expert"), /좋은 결과·나쁜 결과 중 하나를 고르는 문제는 금지/);
+});
+
 test("Gemini 한도와 일시 장애를 구분한다", async () => {
   for (const status of [429, 503]) {
     const run = handler({ generate: async () => { throw { providerStatus: status }; } });
