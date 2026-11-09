@@ -1,8 +1,8 @@
 // Gemini가 막힐 때 다른 AI(ChatGPT·Claude 등)에 줄 프롬프트를 만들고, 받은 JSON 답을 퀴즈 문항으로 바꿉니다.
 import { buildPrompt, normalizeQuestion, distributeChoiceAnswers } from "../supabase/functions/quiz-ai/core.mjs";
 
-export function buildPastePrompt(source, count, type) {
-  return buildPrompt(source, count, type) + `
+export function buildPastePrompt(source, count, type, difficulty = "hard") {
+  return buildPrompt(source, count, type, difficulty) + `
 
 답은 설명이나 인사말 없이 아래 형식의 JSON만 출력하세요.
 {"questions":[{"type":"ox","q":"문제","options":["O","X"],"answer":0,"exp":"해설"},{"type":"choice","q":"문제","options":["보기1","보기2","보기3","보기4"],"answer":2,"exp":"해설"}]}`;

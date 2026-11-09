@@ -25,11 +25,11 @@ async function verify(token: string) {
 }
 // 1차 모델이 막히면 core.mjs가 같은 원고로 대체 모델을 한 번 더 호출합니다.
 const MODELS = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"];
-async function generate(source: string, count: number, type: string, model: string) {
+async function generate(source: string, count: number, type: string, model: string, difficulty: string) {
   const key = Deno.env.get("GEMINI_API_KEY")?.trim() || Deno.env.get("GEMINI_API_KEY_BACKUP")?.trim();
   if (!key) { console.error(JSON.stringify({event: "quiz_ai_provider", reason: "missing_key"})); throw new Error("AI unavailable"); }
   const schema = { type: "object", properties: { questions: { type: "array", items: { type: "object", properties: { type: { type: "string", enum: ["ox", "choice"] }, q: { type: "string" }, options: { type: "array", items: { type: "string" } }, answer: { type: "integer" }, exp: { type: "string" } }, required: ["type", "q", "options", "answer", "exp"] } } }, required: ["questions"] };
-  const prompt = buildPrompt(source, count, type);
+  const prompt = buildPrompt(source, count, type, difficulty);
   const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, { method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": key }, body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json", responseJsonSchema: schema, maxOutputTokens: 16384 } }), signal: AbortSignal.timeout(60000) });
   if (!response.ok) { const failure = await response.json().catch(() => ({})); console.error(JSON.stringify({event: "quiz_ai_provider", model, status: response.status, code: failure.error?.status || "unknown", reasons: (failure.error?.details || []).map((detail: {reason?: string}) => detail.reason).filter(Boolean)})); throw Object.assign(new Error("AI unavailable"), { providerStatus: response.status }); }
   const result = await response.json();
