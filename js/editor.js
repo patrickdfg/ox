@@ -126,6 +126,8 @@ $("ai-generate").onclick = async () => {
   const targetQuiz = quiz;
   if (!user || user.uid !== ownerUid) { $("ai-message").textContent = "Google 로그인 후 이용해 주세요."; return; }
   if (!source || source.length > 15000) { $("ai-message").textContent = "원고나 퀴즈 주제를 입력해 주세요. (최대 15,000자)"; return; }
+  const previousCount = quiz.questions.length;
+  if (previousCount && !confirm(`기존 ${previousCount}개 문제를 새로 만들 ${$("ai-count").value}개 문제로 교체할까요?\n기존 문제는 새 문제 생성에 성공한 뒤에만 바뀝니다.`)) return;
   $("ai-generate").disabled = true;
   $("ai-message").textContent = "원고를 읽고 문제를 만들고 있어요.";
   try {
@@ -139,9 +141,9 @@ $("ai-generate").onclick = async () => {
     if (!response.ok) throw new Error(result.error || "문제를 만들지 못했어요.");
     if (auth.currentUser?.uid !== user.uid || targetQuiz !== quiz) throw new Error("계정이 변경되어 문제를 추가하지 않았어요.");
     if (!Array.isArray(result.questions) || !result.questions.length) throw new Error("생성된 문제를 확인하지 못했어요.");
-    quiz.questions.push(...result.questions);
+    quiz.questions = result.questions;
     renderQuestions();
-    $("ai-message").textContent = `${result.questions.length}개 문제를 추가했어요. 정답과 해설을 확인한 뒤 저장해 주세요.`;
+    $("ai-message").textContent = `${result.questions.length}개 문제로 ${previousCount ? "교체했어요" : "만들었어요"}. 정답과 해설을 확인한 뒤 저장해 주세요.`;
     $("questions").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
     $("ai-message").textContent = (error.message || "연결에 실패했어요. 다시 시도해 주세요.") + " 급하면 아래 '다른 AI로 만들기'를 이용해 주세요.";
@@ -161,10 +163,12 @@ $("ai-copy-prompt").onclick = async () => {
 $("ai-paste-add").onclick = () => {
   try {
     const questions = parsePastedQuestions($("ai-paste").value);
-    quiz.questions.push(...questions);
+    const previousCount = quiz.questions.length;
+    if (previousCount && !confirm(`기존 ${previousCount}개 문제를 붙여 넣은 ${questions.length}개 문제로 교체할까요?`)) return;
+    quiz.questions = questions;
     renderQuestions();
     $("ai-paste").value = "";
-    $("ai-paste-message").textContent = `${questions.length}개 문제를 추가했어요. 정답과 해설을 확인한 뒤 저장해 주세요.`;
+    $("ai-paste-message").textContent = `${questions.length}개 문제로 ${previousCount ? "교체했어요" : "만들었어요"}. 정답과 해설을 확인한 뒤 저장해 주세요.`;
     $("questions").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) { $("ai-paste-message").textContent = error.message; }
 };
