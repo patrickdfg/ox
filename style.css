@@ -251,4 +251,27 @@ a { color:inherit; text-decoration:none; }
 .podium-replay:hover { background:#ffffff38; }
 @media(max-width:600px) { .podium-show { padding:9px; border-radius:22px; }.podium-scene { aspect-ratio:1.45; }.podium-captions { gap:5px; margin-top:-8px; }.podium-caption { padding:9px 4px; }.podium-caption strong { font-size:13px; }.podium-names { font-size:12px; } }
 @media(prefers-reduced-motion:reduce) { .podium-caption { opacity:1; transform:none; transition:none; } }
+
+/* 최종 결과의 참가자 이름과 점수를 시상대와 순위표에서 크게 표시합니다. */
+.host-screen #end .podium, .host-screen #end .podium.has-3d { max-width:min(94vw,1400px); }
+.host-screen #end .podium-captions { gap:clamp(8px,1.5vw,24px); }
+.host-screen #end .podium-caption { padding:clamp(12px,1.5vw,24px) 8px; }
+.host-screen #end .podium-caption strong { font-size:clamp(17px,1.5vw,27px); }
+.host-screen #end .podium-names { max-height:12em; }
+.host-screen #end .podium-names div { flex-direction:column; align-items:center; gap:3px; padding:7px 0; line-height:1.25; }
+.host-screen #end .podium-names span { font-size:clamp(20px,2.2vw,40px); font-weight:900; overflow-wrap:anywhere; }
+.host-screen #end .podium-names small { font-size:clamp(20px,2vw,36px); font-weight:900; color:#ffe27d; }
+.host-screen #end .podium-place strong, .host-screen #end .podium-place b { font-size:clamp(22px,2.3vw,40px); }
+.host-screen #end .podium-place b { color:#ffe27d; }
+.host-screen #end .final-rank { width:100%; max-width:min(94vw,1400px); }
+.host-screen #end .final-rank li { align-items:center; font-size:clamp(20px,2.4vw,44px); font-weight:900; gap:20px; padding:clamp(14px,1.7vh,26px) clamp(16px,2vw,36px); }
+.host-screen #end .final-rank li span { min-width:0; overflow-wrap:anywhere; }
+.host-screen #end .final-rank li b { flex-shrink:0; font-size:1.12em; color:#5927ba; font-variant-numeric:tabular-nums; }
+@media(max-width:600px) {
+  .host-screen #end .podium-caption { padding:12px 4px; }
+  .host-screen #end .podium-caption strong { font-size:14px; }
+  .host-screen #end .podium-names span { font-size:clamp(14px,3.6vw,20px); }
+  .host-screen #end .podium-names small { font-size:clamp(15px,3.8vw,21px); }
+  .host-screen #end .final-rank li { font-size:clamp(18px,5vw,26px); gap:10px; }
+}
 .player-remove { margin-left:8px; border:0; border-radius:50%; width:1.6em; height:1.6em; background:#ffffff30; color:inherit; font:inherit; line-height:1; cursor:pointer; }.player-remove:hover,.player-remove:focus-visible { background:#ee5579; }.manage-players { max-width:950px; width:100%; }.manage-players summary { cursor:pointer; font-weight:bold; margin-bottom:10px; }
