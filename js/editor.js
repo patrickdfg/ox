@@ -135,7 +135,7 @@ $("ai-generate").onclick = async () => {
     const response = await fetch("https://maoylwwnluyyfmwqfkfl.supabase.co/functions/v1/quiz-ai", {
       method: "POST",
       headers: { "Content-Type": "application/json", apikey: "sb_publishable_RR5lrEd5ZidVI1fY1v9haw_Hd7pOH1V", Authorization: "Bearer " + token },
-      body: JSON.stringify({ source, type: $("ai-type").value, count: Number($("ai-count").value) })
+      body: JSON.stringify({ source, type: $("ai-type").value, count: Number($("ai-count").value), difficulty: $("ai-difficulty").value })
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || "문제를 만들지 못했어요.");
@@ -156,7 +156,7 @@ $("ai-copy-prompt").onclick = async () => {
   const source = $("ai-source").value.trim();
   if (!source) { $("ai-paste-message").textContent = "먼저 위 칸에 원고나 퀴즈 주제를 입력해 주세요."; return; }
   try {
-    await navigator.clipboard.writeText(buildPastePrompt(source, Number($("ai-count").value), $("ai-type").value));
+    await navigator.clipboard.writeText(buildPastePrompt(source, Number($("ai-count").value), $("ai-type").value, $("ai-difficulty").value));
     $("ai-paste-message").textContent = "프롬프트를 복사했어요. 다른 AI에 붙여 넣어 주세요.";
   } catch { $("ai-paste-message").textContent = "이 브라우저에서는 복사가 막혀 있어요. 크롬이나 사파리에서 다시 시도해 주세요."; }
 };
