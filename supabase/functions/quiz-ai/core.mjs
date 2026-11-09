@@ -29,7 +29,13 @@ export function distributeChoiceAnswers(questions) {
 }
 
 // Gemini와 편집기의 "다른 AI로 만들기"가 같은 문제 생성 지시문을 씁니다.
-export function buildPrompt(source, count, type) {
+export function buildPrompt(source, count, type, difficulty = "hard") {
+  const levelGuide = {
+    easy: "쉬움: 원고의 기본 사실·인물·용어를 직접 묻되, 지나치게 엉뚱한 오답으로 정답이 드러나지 않게 하세요.",
+    normal: "보통: 핵심 개념과 이유·의미를 이해해야 답하도록 만드세요. 서로 헷갈릴 만한 개념을 비교하게 하세요.",
+    hard: "어려움: 단순 암기보다 비슷한 개념·인물·원인·결과를 정확히 구분하거나 구체적인 상황에 가르침·원리를 적용하도록 만드세요. 오답 세 개도 정답과 같은 범주의 설득력 있는 선택지로 만드세요.",
+    expert: "최상: 여러 핵심 개념의 연결·조건·예외를 종합해 판단하는 고난도 문제를 만드세요. 원고로 정답을 명확히 판별할 수 있는 범위에서 정교하게 구분되는 오답을 만드세요."
+  }[difficulty] || "어려움: 비슷한 개념을 비교하고 상황에 적용하며, 그럴듯한 오답을 구성하세요.";
   return `아래 입력으로 한국어 학습 퀴즈 ${count}개를 만드세요. 말씀·설교·성경 공부 자료와 학교·학원 수업 자료에 공통으로 적용합니다.
 
 [원고 분석과 핵심 선정]
@@ -42,6 +48,16 @@ export function buildPrompt(source, count, type) {
 - 말씀·설교·성경 공부라면 중요한 가르침과 의미, 인물·사건, 실천할 내용을 우선하세요. 성경 본문에 직접 적힌 사실과 설교자의 해석·권면을 구분하고 해석을 성경에 명시된 사실로 단정하지 마세요.
 - 학교·학원 수업이라면 학습 목표, 개념·용어·원리, 예제와 적용 방법을 우선하세요. 프로그래밍·과학처럼 조건과 예외가 중요한 내용은 빠뜨리지 마세요.
 - 단순 기억과 개념 이해를 균형 있게 묻고, 원고의 원리만으로 판단할 수 있다면 간단한 적용 문제도 포함하세요.
+
+[선택 난이도]
+${levelGuide}
+- 난이도가 높더라도 정답의 근거가 자료에 있어야 합니다. 정답이 여러 개인 모호한 문제나 원고 밖의 세부 지식을 요구하는 문제를 만들지 마세요.
+
+[객관식 오답 보기 품질]
+- 정답과 오답 세 개는 같은 주제·범주이며 문장 길이와 표현 수준도 비슷해야 합니다.
+- 오답은 다른 상황이라면 타당해 보일 정도로 그럴듯하되, 질문의 조건과 자료 내용에 비추면 명확하게 틀려야 합니다.
+- 지나치게 엉뚱한 사물·사람·행동, 농담 같은 보기, '항상'·'절대로'처럼 답을 쉽게 드러내는 표현, 정답만 유난히 길거나 구체적인 구성은 피하세요.
+- 최종 출력 전에 상식만으로 정답이 바로 보이는 문항인지 점검하고, 그렇다면 오답을 같은 영역의 유사 개념·행동으로 다시 작성하세요.
 
 [문항의 정확성과 표현]
 - 문제마다 답이 명확히 하나만 나오게 하세요. 조건이 빠져 정답이 달라지거나 O/X에서 관점에 따라 답이 갈리는 표현을 피하세요.
@@ -96,15 +112,17 @@ export function createHandler({ verify, generate, models = [null] }) {
       let body;
       try { body = JSON.parse(text); }
       catch { return reply({ error: "요청 형식을 확인해 주세요." }, 400); }
-      if (!body || typeof body !== "object" || Array.isArray(body) || Object.keys(body).some(k => !["source", "count", "type"].includes(k))) return reply({ error: "요청 형식을 확인해 주세요." }, 400);
+      if (!body || typeof body !== "object" || Array.isArray(body) || Object.keys(body).some(k => !["source", "count", "type", "difficulty"].includes(k))) return reply({ error: "요청 형식을 확인해 주세요." }, 400);
       const source = typeof body.source === "string" ? body.source.trim() : "";
       if (!source || source.length > MAX_SOURCE) return reply({ error: "원고나 퀴즈 주제를 입력해 주세요. (최대 15,000자)" }, 400);
       if (!Number.isInteger(body.count) || body.count < 1 || body.count > 20 || !["ox", "choice", "mixed"].includes(body.type)) return reply({ error: "문제 수와 유형을 확인해 주세요." }, 400);
+      const difficulty = body.difficulty === undefined ? "hard" : body.difficulty;
+      if (!["easy", "normal", "hard", "expert"].includes(difficulty)) return reply({ error: "문제 난이도를 확인해 주세요." }, 400);
       // 1차 모델이 실패하거나 형식이 틀린 결과를 주면 다음 모델로 다시 만듭니다.
       let questions, lastError;
       for (const model of models) {
         try {
-          const items = await generate(source, body.count, body.type, model);
+          const items = await generate(source, body.count, body.type, model, difficulty);
           if (!Array.isArray(items) || items.length !== body.count) throw new Error("invalid");
           questions = items.map(item => normalizeQuestion(item, body.type));
           break;
