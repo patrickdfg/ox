@@ -31,6 +31,16 @@ test("말씀과 수업 원고에 핵심·중복·정확성 기준과 기존 유�
   assert.match(lesson, /4지선다 객관식만/);
 });
 
+test("다른 AI 복사 프롬프트도 선택 난이도를 반영하며 기본은 어려움이다", () => {
+  const easy = buildPastePrompt("배움 원고", 5, "choice", "easy");
+  const expert = buildPastePrompt("배움 원고", 5, "choice", "expert");
+  const defaultPrompt = buildPastePrompt("배움 원고", 5, "choice");
+  assert.match(easy, /기본 사실/);
+  assert.match(expert, /여러 핵심 개념의 연결/);
+  assert.match(defaultPrompt, /단순 암기보다/);
+  assert.match(expert, /JSON만 출력/);
+});
+
 test("코드 블록·설명문이 섞인 답과 배열 형태도 읽는다", () => {
   const text = "네, 만들었어요!\n```json\n" + JSON.stringify({ questions: [ox, choice] }) + "\n```\n확인해 보세요.";
   const questions = parsePastedQuestions(text);
