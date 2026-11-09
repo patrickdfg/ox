@@ -38,9 +38,20 @@ function report(error) {console.error(error);$("answer-message").textContent="�
 const merged=game=>mergeByName(Object.entries(game.players||{}).map(([id,p])=>({id,...p})));
 const myScore=game=>merged(game).find(p=>p.ids.includes(pid))?.score||0;
 function rankOf(game) {const mine=myScore(game);return merged(game).filter(p=>p.score>mine).length+1;}
+// 모바일에서 긴 문제의 선택지가 보이도록 문제 화면의 아래쪽으로 이동합니다.
+function scrollToQuestionBottom() {
+  if (!matchMedia("(max-width:760px)").matches || $("question").hidden) return;
+  requestAnimationFrame(() => {
+    if ($("question").hidden) return;
+    const bottom = $("player-options").getBoundingClientRect().bottom + window.scrollY + 24;
+    const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    window.scrollTo({ top: Math.min(maxScroll, Math.max(0, bottom - window.innerHeight)), behavior: "smooth" });
+  });
+}
 function displayQuestion(item,index,total,started,onTimeout) {
   $("question-progress").value=index+1;$("question-progress").max=total;
   $("pq-num").textContent=`QUESTION ${index+1} / ${total}`;$("pq-text").textContent=item.q;$("pq-image").hidden=!item.image;
+  $("pq-image").onload = scrollToQuestionBottom;
   if(item.image) $("pq-image").src=item.image;else $("pq-image").removeAttribute("src");
   $("player-options").dataset.type=item.type;$("answer-message").textContent="";
   $("player-options").innerHTML=item.options.map((option,i)=>`<button class="answer-tile color-${i}" data-answer="${i}"><span>${["◆","●","▲","■"][i]}</span>${esc(option)}</button>`).join("");
@@ -48,7 +59,7 @@ function displayQuestion(item,index,total,started,onTimeout) {
     const left=started+item.time*1000-now();updateClock($("p-timer"),left,item.time);
     if(left<=0) {document.querySelectorAll("[data-answer]").forEach(b=>b.disabled=true);clearInterval(timer);onTimeout?.();}
   };
-  clearInterval(timer);show("question");timer=setInterval(tick,100);tick();
+  clearInterval(timer);show("question");scrollToQuestionBottom();timer=setInterval(tick,100);tick();
 }
 async function render(game) {
   currentGame=game;renderRace($("race-panel"),game.mode==='self'?{...game,players:{[pid]:{...game.players?.[pid],score:personalScore}}}:game);
