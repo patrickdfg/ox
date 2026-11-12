@@ -35,7 +35,13 @@ export function updateClock(element, leftMs, limitSec) {
 }
 
 let audio;
-let muted = localStorage.getItem("quiz-play-muted") !== "false";
+let muted = localStorage.getItem("quiz-play-muted") === "true";
+let effectVolume = Number(localStorage.getItem("quiz-play-fx-volume") ?? "0.55");
+effectVolume = Number.isFinite(effectVolume) ? Math.min(1, Math.max(0, effectVolume)) : 0.55;
+export function setEffectsVolume(value) {
+  effectVolume = Math.min(1, Math.max(0, value));
+  localStorage.setItem("quiz-play-fx-volume", String(effectVolume));
+}
 const enableAudio = () => {
   if (muted) return;
   audio ||= new (window.AudioContext || window.webkitAudioContext)();
@@ -62,7 +68,7 @@ motion.onclick=()=>{localStorage.setItem('quiz-play-reduced-motion',String(local
 systemMotion.addEventListener('change',syncMotion);syncMotion();document.querySelector('.game-top')?.append(motion);
 export function correctSound(){
  if(muted||!audio)return;
- [659.25,880].forEach((frequency,i)=>{const o=audio.createOscillator(),g=audio.createGain(),t=audio.currentTime+i*.1;o.frequency.value=frequency;g.gain.setValueAtTime(.05,t);g.gain.exponentialRampToValueAtTime(.001,t+.2);o.connect(g).connect(audio.destination);o.start(t);o.stop(t+.21);});
+ [659.25,880].forEach((frequency,i)=>{const o=audio.createOscillator(),g=audio.createGain(),t=audio.currentTime+i*.1;o.frequency.value=frequency;g.gain.setValueAtTime(.05*effectVolume,t);g.gain.exponentialRampToValueAtTime(.001,t+.2);o.connect(g).connect(audio.destination);o.start(t);o.stop(t+.21);});
 }
 export function celebrate() {
   if (muted || !audio) return;
@@ -70,9 +76,24 @@ export function celebrate() {
     const oscillator = audio.createOscillator(), gain = audio.createGain();
     const start = audio.currentTime + i * .13;
     oscillator.frequency.value = frequency;
-    gain.gain.setValueAtTime(.06, start);
+    gain.gain.setValueAtTime(.06*effectVolume, start);
     gain.gain.exponentialRampToValueAtTime(.001, start + .35);
     oscillator.connect(gain).connect(audio.destination);
     oscillator.start(start); oscillator.stop(start + .35);
+  });
+}
+
+export function wrongSound() {
+  if (muted || !audio) return;
+  [392, 293.66].forEach((frequency, i) => {
+    const oscillator = audio.createOscillator(), gain = audio.createGain();
+    const start = audio.currentTime + i * .12;
+    oscillator.type = "sine";
+    oscillator.frequency.value = frequency;
+    gain.gain.setValueAtTime(.05 * effectVolume, start);
+    gain.gain.exponentialRampToValueAtTime(.001, start + .25);
+    oscillator.connect(gain).connect(audio.destination);
+    oscillator.start(start);
+    oscillator.stop(start + .26);
   });
 }
