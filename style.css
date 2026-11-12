@@ -275,3 +275,16 @@ a { color:inherit; text-decoration:none; }
   .host-screen #end .final-rank li { font-size:clamp(18px,5vw,26px); gap:10px; }
 }
 .player-remove { margin-left:8px; border:0; border-radius:50%; width:1.6em; height:1.6em; background:#ffffff30; color:inherit; font:inherit; line-height:1; cursor:pointer; }.player-remove:hover,.player-remove:focus-visible { background:#ee5579; }.manage-players { max-width:950px; width:100%; }.manage-players summary { cursor:pointer; font-weight:bold; margin-bottom:10px; }
+
+
+/* 게임별 배경음악·효과음 볼륨을 한곳에서 조절합니다. */
+.game-audio-controls { display:flex;align-items:center;gap:8px;position:relative;flex-shrink:0; }
+.music-toggle { display:inline-grid;place-items:center;width:38px;height:38px;border-radius:50%;border:1px solid #ffffff55;background:#ffffff20;color:#fff;font-size:19px;cursor:pointer; }
+.music-settings { position:relative; }
+.music-settings summary { display:grid;place-items:center;width:38px;height:38px;border-radius:50%;border:1px solid #ffffff55;background:#ffffff20;cursor:pointer;font-size:18px;list-style:none; }
+.music-settings summary::-webkit-details-marker { display:none; }
+.music-settings-panel { position:absolute;right:0;top:45px;z-index:100;width:min(275px,calc(100vw - 32px));padding:17px 18px;border:1px solid #a18bc8;border-radius:16px;box-shadow:0 12px 35px #10062655;background:#211633;color:#fff;display:grid;gap:14px;text-align:left; }
+.music-settings-panel label { display:grid;gap:8px;font-size:14px;font-weight:700; }
+.music-settings-panel input { width:100%;accent-color:#b995ff;cursor:pointer; }
+.music-settings-panel small { font-size:11px;color:#ddd1ff;line-height:1.4; }
+@media(max-width:560px) { .game-top .top-right { gap:6px;flex-wrap:wrap;justify-content:flex-end; } .game-audio-controls { gap:5px; }.sound-toggle,.music-toggle,.music-settings summary { width:34px;height:34px;font-size:16px; }.music-settings-panel { right:-6px; } }
