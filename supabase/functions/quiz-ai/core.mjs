@@ -1,5 +1,4 @@
 const ALLOWED_ORIGIN = "https://patrickdfg.github.io";
-const MAX_SOURCE = 15000;
 
 // 객관식 정답의 위치를 고르게 분산하되 정답 내용과 해설은 유지합니다.
 export function distributeChoiceAnswers(questions) {
@@ -105,12 +104,9 @@ export function createHandler({ verify, generate, models = [null] }) {
     try {
       if (!request.body) return reply({ error: "원고를 입력해 주세요." }, 400);
       const reader = request.body.getReader(), decoder = new TextDecoder();
-      let bytes = 0;
       while (true) {
         const part = await reader.read();
         if (part.done) break;
-        bytes += part.value.byteLength;
-        if (bytes > 100000) { await reader.cancel(); return reply({ error: "원고가 너무 깁니다." }, 413); }
         text += decoder.decode(part.value, { stream: true });
       }
       text += decoder.decode();
@@ -119,7 +115,7 @@ export function createHandler({ verify, generate, models = [null] }) {
       catch { return reply({ error: "요청 형식을 확인해 주세요." }, 400); }
       if (!body || typeof body !== "object" || Array.isArray(body) || Object.keys(body).some(k => !["source", "count", "type", "difficulty"].includes(k))) return reply({ error: "요청 형식을 확인해 주세요." }, 400);
       const source = typeof body.source === "string" ? body.source.trim() : "";
-      if (!source || source.length > MAX_SOURCE) return reply({ error: "원고나 퀴즈 주제를 입력해 주세요. (최대 15,000자)" }, 400);
+      if (!source) return reply({ error: "원고나 퀴즈 주제를 입력해 주세요." }, 400);
       if (!Number.isInteger(body.count) || body.count < 1 || body.count > 20 || !["ox", "choice", "mixed"].includes(body.type)) return reply({ error: "문제 수와 유형을 확인해 주세요." }, 400);
       const difficulty = body.difficulty === undefined ? "hard" : body.difficulty;
       if (!["easy", "normal", "hard", "expert"].includes(difficulty)) return reply({ error: "문제 난이도를 확인해 주세요." }, 400);

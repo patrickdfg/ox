@@ -22,6 +22,20 @@ test("입력을 검증하고 자체 사용량 제한 없이 생성한다", async
   for (let i = 0; i < 12; i++) assert.equal((await run(request({ ...valid, source: "초등학교 상식 퀴즈 내줘" }))).status, 200);
   assert.equal(generated, 12);
 });
+test("원고 15,000자 및 요청 본문 100KB 초과 시에도 전체 입력을 처리한다", async () => {
+  const fullSource = "교육과 말씀의 핵심내용입니다.\n".repeat(9000);
+  let received;
+  const run = handler({ generate: async manuscript => {
+    received = manuscript;
+    return [question];
+  } });
+  const response = await run(request({ ...valid, source: fullSource }));
+  assert.equal(response.status, 200);
+  assert.equal(received, fullSource.trim());
+  assert.ok(fullSource.length > 15000);
+  assert.ok(new TextEncoder().encode(JSON.stringify({ ...valid, source: fullSource })).length > 100000);
+});
+
 test("난이도 4단계의 지시문을 적용하고 생략 시 어려움을 기본값으로 사용한다", async () => {
   const guides = { easy: "기본 사실", normal: "핵심 개념", hard: "단순 암기보다", expert: "여러 핵심 개념의 연결" };
   for (const [level, phrase] of Object.entries(guides)) {
