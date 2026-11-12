@@ -110,11 +110,9 @@ $("ai-file").onchange = async event => {
   $("ai-message").textContent = "";
   try {
     let text = await readManuscript(file);
-    const cut = text.length > 15000;
-    if (cut) text = text.slice(0, 15000);
     $("ai-source").value = text;
     $("ai-file-name").textContent = file.name;
-    $("ai-message").textContent = cut ? "원고가 길어 앞쪽 15,000자만 불러왔어요. 필요한 부분만 남겨 주세요." : `${text.length.toLocaleString()}자를 불러왔어요. 내용을 확인한 뒤 문제를 만들어 주세요.`;
+    $("ai-message").textContent = `${text.length.toLocaleString()}자를 모두 불러왔어요. 내용을 확인한 뒤 문제를 만들어 주세요.`;
   } catch (error) {
     $("ai-file-name").textContent = "한글·PPT·PDF·워드·텍스트 파일 (.hwp .hwpx .pptx .pdf .docx .txt)";
     $("ai-message").textContent = error.message || "파일을 읽지 못했어요.";
@@ -125,7 +123,7 @@ $("ai-generate").onclick = async () => {
   const source = $("ai-source").value.trim();
   const targetQuiz = quiz;
   if (!user || user.uid !== ownerUid) { $("ai-message").textContent = "Google 로그인 후 이용해 주세요."; return; }
-  if (!source || source.length > 15000) { $("ai-message").textContent = "원고나 퀴즈 주제를 입력해 주세요. (최대 15,000자)"; return; }
+  if (!source) { $("ai-message").textContent = "원고나 퀴즈 주제를 입력해 주세요."; return; }
   const previousCount = quiz.questions.length;
   if (previousCount && !confirm(`기존 ${previousCount}개 문제를 새로 만들 ${$("ai-count").value}개 문제로 교체할까요?\n기존 문제는 새 문제 생성에 성공한 뒤에만 바뀝니다.`)) return;
   $("ai-generate").disabled = true;
