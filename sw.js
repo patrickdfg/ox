@@ -1,10 +1,10 @@
 // 퀴즈 플레이의 정적 화면을 오프라인에서도 열 수 있도록 저장합니다.
-const CACHE = "quiz-play-pwa-20261110-expert-distractors";
+const CACHE = "quiz-play-pwa-20261112-music";
 const FILES = ["./", "./slide.html", "./slide.css", "./js/slides.js", "./js/slide-state.mjs", "./index.html", "./editor.html", "./host.html", "./play.html",
  "./style.css", "./style.css?v=20261106-themes", "./classroom.html", "./js/classroom.js", "./js/race.js", "./reports.html", "./js/grading.js", "./js/session.js", "./js/reports.mjs", "./js/report-page.js", "./manifest.json", "./assets/favicon.svg", "./assets/icon-192.png",
  "./assets/icon-512.png", "./assets/cosmic.jpg", "./js/ui.js", "./js/home.js",
  "./js/editor.js", "./js/host.js", "./js/play.js", "./js/store.js", "./js/auth.js",
- "./js/game-math.mjs", "./js/game-effects.js", "./js/podium-3d.js", "./vendor/three/three.module.js", "./vendor/three/three.core.js", "./js/db.js", "./js/config.js", "./js/questions.js", "./js/manuscript.js", "./js/ai-paste.mjs", "./supabase/functions/quiz-ai/core.mjs"];
+ "./js/game-math.mjs", "./js/game-effects.js", "./js/game-audio.js", "./assets/music/challenge.mp3", "./assets/music/battle.mp3", "./assets/music/classroom.mp3", "./js/podium-3d.js", "./vendor/three/three.module.js", "./vendor/three/three.core.js", "./js/db.js", "./js/config.js", "./js/questions.js", "./js/manuscript.js", "./js/ai-paste.mjs", "./supabase/functions/quiz-ai/core.mjs"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES.map(file => new Request(file, { cache: "reload" })))).then(() => self.skipWaiting()));
 });

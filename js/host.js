@@ -8,13 +8,15 @@ import { renderRace } from "./race.js";
 import { participant, saveKeys } from "./session.js";
 import { buildReport } from "./reports.mjs";
 import { rankHtml, podium, updateClock } from "./game-effects.js";
+import { initGameAudio } from "./game-audio.js";
 import { mergeByName } from "./game-math.mjs";
 
 const $ = id => document.getElementById(id);
-const show = name => ["solo-preparing", "lobby", "question", "reveal", "end"].forEach(s => $(s).hidden = s !== name);
+const show = name => { ["solo-preparing", "lobby", "question", "reveal", "end"].forEach(s => $(s).hidden = s !== name); gameAudio.setStage(name); };
 const quizId = new URLSearchParams(location.search).get("quiz") || "sample";
 const mode = ["self","battle"].includes(new URLSearchParams(location.search).get("mode")) ? new URLSearchParams(location.search).get("mode") : "live";
 const directSelf = mode === "self" && new URLSearchParams(location.search).get("direct") === "1";
+const gameAudio = initGameAudio(mode);
 const settings=new URLSearchParams(location.search),feedback=settings.get('feedback')==='end'?'end':'each',visual=settings.get('visual')==='race'||mode==='battle'?'race':'classic';
 let quiz, owner;
 let pin = "", game = {}, qIndex = -1, timer = null, revealing = false;

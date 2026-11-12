@@ -2,10 +2,12 @@ import { at, set, get, onValue, serverTimestamp, now, calcPoints, esc } from "./
 import {grade} from './grading.js';
 import { renderRace } from "./race.js";
 import { participant, findSession, startPersonalQuestion } from "./session.js";
-import { podium, updateClock,correctSound } from "./game-effects.js";
+import { podium, updateClock, correctSound, wrongSound } from "./game-effects.js";
+import { initGameAudio } from "./game-audio.js";
 import { mergeByName } from "./game-math.mjs";
 const $ = id => document.getElementById(id);
-const show = name => ["solo-loading", "join", "wait", "question", "sent", "result", "end"].forEach(s => $(s).hidden = s !== name);
+const gameAudio = initGameAudio();
+const show = name => { ["solo-loading", "join", "wait", "question", "sent", "result", "end"].forEach(s => $(s).hidden = s !== name); gameAudio.setStage(name); };
 let pin="",pid="",room="",lastKey="",timer=null,currentGame=null,stop=null,personalQ=0,busy=false,joining=false;
 let personalScore=0;
 const params = new URLSearchParams(location.search);
@@ -62,6 +64,7 @@ function displayQuestion(item,index,total,started,onTimeout) {
   clearInterval(timer);show("question");scrollToQuestionBottom();timer=setInterval(tick,100);tick();
 }
 async function render(game) {
+  gameAudio.setMode(game.mode === "self" ? "self" : null);
   currentGame=game;renderRace($("race-panel"),game.mode==='self'?{...game,players:{[pid]:{...game.players?.[pid],score:personalScore}}}:game);
   if(!game.state) {clearInterval(timer);if(directSolo){show("solo-loading");$("solo-loading-message").textContent="학습이 종료되었어요. 처음부터 다시 시작해 주세요.";}else{show("join");$("join-msg").textContent="삭제된 방이에요.";}return;}
   if(["cosmic","sunset","ocean","forest","neon","volcano"].includes(game.theme)) document.body.className=`game theme-${game.theme}`;
@@ -76,7 +79,7 @@ async function render(game) {
     displayQuestion(game.current,game.q,game.total,game.qStart);return;
   }
   if(game.state==="reveal") {
-    if(me?.last>0)correctSound();
+    if(me?.last>0)correctSound();else wrongSound();
     $("result-title").textContent=me?.last>0?"정답이에요! 🎉":"아쉬워요, 다음 문제!";
     $("result-points").textContent=`+${me?.last||0}점`;$("result-answer").textContent=`정답: ${game.reveal?.text||""}`;
     $("result-exp").textContent=game.reveal?.exp||"";$("result-total").textContent=`총점 ${myScore(game)}점 · ${rankOf(game)}등`;return show("result");
@@ -118,7 +121,7 @@ async function submit(answer) {
         $('result-title').textContent='답을 제출했어요';$('result-points').textContent=`${q+1} / ${currentGame.total}`;$('result-answer').textContent='모든 문제를 풀면 정답과 해설을 확인해요.';$('result-exp').textContent='';$('result-total').textContent='';$('personal-next').hidden=false;show('result');return;
       }
       const graded=(await grade(pin,'personal',q)).rows,key=graded.find(row=>row.index===q),ok=key.correct;
-      if(ok)correctSound();
+      if(ok)correctSound();else wrongSound();
       if(currentGame.visual==='race'){personalScore=graded.reduce((sum,r)=>sum+r.points,0);renderRace($('race-panel'),{...currentGame,players:{[pid]:{...currentGame.players?.[pid],score:personalScore}}});}
       $("result-title").textContent=ok?"정답이에요! 🎉":"정답과 해설을 확인해요";
       $("result-points").textContent=`+${key.points}점`;$("result-answer").textContent=`정답: ${key.text}`;$("result-exp").textContent=key.exp;$("result-total").textContent=`${q+1} / ${currentGame.total}문제 완료`;
